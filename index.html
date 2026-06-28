@@ -1,0 +1,2429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#5BA3C9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BUBU">
+<title>BUBU System</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-152.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+  :root {
+    --sky: #87CEEB;
+    --sky-dark: #5BA3C9;
+    --sky-deeper: #3A86A8;
+    --wood-light: #DEB887;
+    --wood: #C4955A;
+    --wood-dark: #8B6340;
+    --wood-darker: #5C3D1E;
+    --black: #1A0F00;
+    --cream: #FFF8E7;
+    --gold: #D4A017;
+    --gold-light: #F0C040;
+    --red: #C0392B;
+    --green: #27AE60;
+    --green-light: #2ECC71;
+    --white: #FFFFFF;
+    --shadow: rgba(0,0,0,0.4);
+    --orange: #E67E22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'VT323', monospace;
+    background: var(--sky);
+    color: var(--black);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(91,163,201,0.4) 0%, transparent 50%);
+  }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: var(--wood-light); border: 2px solid var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--wood-dark); border: 2px solid var(--black); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--wood-darker); }
+  ::-webkit-scrollbar-corner { background: var(--wood); }
+
+  .retro-box {
+    border: 3px solid var(--black);
+    box-shadow: 4px 4px 0 var(--black), inset 0 0 0 2px rgba(255,255,255,0.2);
+    position: relative;
+  }
+
+  #header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--wood-dark);
+    border-bottom: 4px solid var(--black);
+    box-shadow: 0 4px 0 var(--black), 0 6px 12px rgba(0,0,0,0.4);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-image: repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,0.03) 40px,rgba(255,255,255,0.03) 41px);
+  }
+
+  #header-logo { display: flex; align-items: center; gap: 10px; }
+
+  #header h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    color: var(--gold-light);
+    text-shadow: 2px 2px 0 var(--black), -1px -1px 0 var(--wood-darker);
+    letter-spacing: 2px;
+  }
+
+  #header-sub {
+    font-size: 11px;
+    color: var(--wood-light);
+    font-family: 'VT323', monospace;
+    letter-spacing: 1px;
+  }
+
+  .header-btns { display: flex; gap: 8px; }
+
+  .btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 8px 12px;
+    border: 2px solid var(--black);
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--black);
+    transition: all 0.05s;
+    position: relative;
+    letter-spacing: 0.5px;
+    user-select: none;
+    text-transform: uppercase;
+  }
+
+  .btn:active, .btn.pressed {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 var(--black);
+  }
+
+  .btn-sky { background: var(--sky-dark); color: var(--white); }
+  .btn-sky:hover { background: var(--sky-deeper); }
+  .btn-wood { background: var(--wood); color: var(--cream); }
+  .btn-wood:hover { background: var(--wood-dark); }
+  .btn-gold { background: var(--gold); color: var(--black); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-red { background: var(--red); color: var(--white); }
+  .btn-red:hover { background: #922B21; }
+  .btn-green { background: var(--green); color: var(--white); }
+  .btn-green:hover { background: #1E8449; }
+  .btn-orange { background: var(--orange); color: var(--white); }
+  .btn-orange:hover { background: #CA6F1E; }
+
+  .btn-sm { font-size: 7px; padding: 6px 10px; box-shadow: 2px 2px 0 var(--black); }
+  .btn-sm:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--black); }
+  .btn-lg { font-size: 9px; padding: 12px 20px; box-shadow: 4px 4px 0 var(--black); }
+  .btn-lg:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--black); }
+
+  #main {
+    margin-top: 78px;
+    padding: 16px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 100px;
+  }
+
+  #overview {
+    background: var(--wood-light);
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    padding: 16px;
+    margin-bottom: 20px;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(139,99,64,0.1) 18px,rgba(139,99,64,0.1) 19px);
+    position: relative;
+  }
+  #overview::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.4);
+    pointer-events: none;
+  }
+
+  #overview h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--wood-darker);
+    margin-bottom: 14px;
+    text-align: center;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+  }
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  @media (min-width: 500px) {
+    .overview-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .stat-card {
+    background: var(--sky);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 10px 8px;
+    text-align: center;
+    position: relative;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px; right: 2px; bottom: 2px;
+    border: 1px solid rgba(255,255,255,0.5);
+    pointer-events: none;
+  }
+
+  .stat-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: var(--wood-darker);
+    margin-bottom: 6px;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--black);
+    font-weight: bold;
+  }
+
+  .stat-card.highlight { background: var(--gold-light); }
+  .stat-card.highlight-green { background: #A8E6CF; }
+  .stat-card.highlight-red { background: #FFAAAA; }
+  .stat-card.rate-card { background: var(--wood); color: var(--cream); }
+  .stat-card.rate-card .stat-label { color: var(--cream); }
+  .stat-card.rate-card .stat-value { color: var(--gold-light); font-size: 28px; }
+  .stat-card.highlight-orange { background: #FFD5A0; }
+
+  #members-section {
+    background: var(--wood-light);
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    padding: 16px;
+    margin-bottom: 20px;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(139,99,64,0.08) 18px,rgba(139,99,64,0.08) 19px);
+  }
+
+  #members-section h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--wood-darker);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  #member-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wood-dark) var(--wood-light);
+  }
+
+  .member-item {
+    background: var(--sky);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.05s;
+    position: relative;
+  }
+  .member-item::before {
+    content: '▶';
+    position: absolute;
+    right: 14px;
+    font-size: 12px;
+    color: var(--wood-dark);
+  }
+  .member-item:hover { background: var(--sky-dark); color: var(--white); }
+  .member-item:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--black); }
+
+  .member-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--black);
+  }
+  .member-item:hover .member-name { color: var(--white); }
+
+  .member-meta { font-size: 13px; color: var(--wood-darker); margin-right: 20px; }
+  .member-item:hover .member-meta { color: var(--cream); }
+
+  .member-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid var(--black);
+    font-size: 11px;
+    background: var(--gold);
+    color: var(--black);
+    margin-left: 6px;
+  }
+  .member-badge.loan { background: #FFAAAA; }
+  .member-badge.accrued { background: #FFD5A0; }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--wood-dark);
+    line-height: 2;
+  }
+
+  #member-search-wrap { margin-bottom: 12px; position: relative; }
+  #member-search {
+    width: 100%;
+    padding: 10px 36px 10px 12px;
+    border: 2px solid var(--black);
+    background: var(--cream);
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    outline: none;
+  }
+  #member-search:focus { background: var(--white); border-color: var(--sky-deeper); }
+  #member-search-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--wood-dark); pointer-events: none; }
+  #member-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-family: 'Press Start 2P', monospace; font-size: 8px; background: var(--red); color: var(--white); border: 1px solid var(--black); padding: 3px 5px; cursor: pointer; display: none; }
+
+  .no-results { text-align: center; padding: 24px; font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--wood-dark); line-height: 2; }
+
+  #bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--wood-dark);
+    border-top: 4px solid var(--black);
+    box-shadow: 0 -4px 0 var(--black);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+  }
+  #bottom-bar .btn-lg { flex: 1; max-width: 200px; text-align: center; font-size: 8px; padding: 11px 10px; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.1s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal {
+    background: var(--wood-light);
+    border: 3px solid var(--black);
+    box-shadow: 6px 6px 0 var(--black);
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    animation: slideUp 0.15s ease;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(139,99,64,0.08) 18px,rgba(139,99,64,0.08) 19px);
+  }
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.3);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .modal-header {
+    background: var(--wood-dark);
+    border-bottom: 3px solid var(--black);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--gold-light);
+    text-shadow: 1px 1px 0 var(--black);
+  }
+
+  .modal-body {
+    padding: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wood-dark) var(--wood-light);
+    position: relative;
+    z-index: 1;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+    border-top: 2px solid var(--black);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    background: rgba(0,0,0,0.05);
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--wood-darker);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--black);
+    background: var(--cream);
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    outline: none;
+  }
+  .form-input:focus { background: var(--white); border-color: var(--sky-deeper); }
+
+  .member-detail-modal .modal { max-width: 500px; }
+
+  .detail-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .detail-card {
+    background: var(--sky);
+    border: 2px solid var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+    padding: 8px;
+    text-align: center;
+  }
+  .detail-card .lbl {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: var(--wood-darker);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .detail-card .val {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--black);
+    font-weight: bold;
+  }
+  .detail-card.accent { background: var(--gold-light); }
+  .detail-card.accent-green { background: #A8E6CF; }
+  .detail-card.accent-red { background: #FFAAAA; }
+  .detail-card.accent-orange { background: #FFD5A0; }
+
+  .loan-accrual-panel {
+    background: linear-gradient(135deg, #FFE5CC, #FFD5A0);
+    border: 3px solid var(--orange);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .loan-accrual-panel::before {
+    content: '⏰ MONTHLY INTEREST ACCRUING';
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: var(--orange);
+    display: block;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .accrual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .accrual-item {
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--orange);
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .accrual-item .al { font-family: 'Press Start 2P', monospace; font-size: 5.5px; color: var(--wood-darker); margin-bottom: 3px; line-height: 1.4; }
+  .accrual-item .av { font-family: 'VT323', monospace; font-size: 18px; color: var(--black); font-weight: bold; }
+  .accrual-item .av.danger { color: var(--red); }
+  .accrual-warning {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--red);
+    text-align: center;
+    line-height: 1.4;
+    font-weight: bold;
+  }
+
+  .detail-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .entry-list {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 2px solid var(--black);
+    background: var(--cream);
+    scrollbar-width: thin;
+    scrollbar-color: var(--wood-dark) var(--cream);
+  }
+
+  .entry-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--wood-light);
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-item:nth-child(even) { background: rgba(135,206,235,0.15); }
+
+  .entry-type {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    padding: 2px 5px;
+    border: 1px solid var(--black);
+  }
+  .entry-type.contrib { background: var(--green-light); }
+  .entry-type.loan-pay { background: var(--gold-light); }
+  .entry-type.loan-taken { background: #FFAAAA; }
+  .entry-type.release { background: var(--sky-dark); color: var(--white); }
+  .entry-type.accrual { background: #FFD5A0; }
+
+  .entry-amount { font-size: 16px; font-weight: bold; }
+  .entry-date { font-size: 12px; color: #666; }
+
+  .section-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--wood-darker);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--wood);
+    text-transform: uppercase;
+  }
+
+  .history-entry {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--wood);
+    font-size: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .history-entry:nth-child(even) { background: rgba(135,206,235,0.1); }
+  .history-icon { font-size: 18px; flex-shrink: 0; }
+  .history-text { flex: 1; }
+  .history-title { font-size: 15px; font-weight: bold; color: var(--black); }
+  .history-date { font-size: 12px; color: var(--wood-dark); }
+
+  .interest-options {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .interest-opt {
+    background: var(--sky);
+    border: 2px solid var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    transition: all 0.05s;
+  }
+  .interest-opt:hover { background: var(--sky-dark); color: var(--white); }
+  .interest-opt.selected { background: var(--gold); border-color: var(--black); }
+  .interest-opt:active { transform: translate(2px,2px); box-shadow: 0 0 0 var(--black); }
+
+  .confirm-message {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--black);
+    text-align: center;
+    padding: 16px 0;
+    line-height: 1.4;
+  }
+
+  .pixel-icon { font-size: 36px; text-align: center; margin-bottom: 10px; }
+
+  #disclaimer-btn {
+    position: fixed;
+    bottom: 72px;
+    right: 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    padding: 4px 7px;
+    background: rgba(0,0,0,0.5);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    z-index: 99;
+    letter-spacing: 0.5px;
+  }
+  #disclaimer-btn:hover { background: rgba(0,0,0,0.7); }
+
+  .alert-banner {
+    background: var(--gold-light);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--black);
+    line-height: 1.6;
+  }
+
+  .alert-info {
+    background: #D4EDFF;
+    border: 2px solid var(--sky-deeper);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--black);
+    line-height: 1.5;
+  }
+
+  .alert-orange {
+    background: #FFE5CC;
+    border: 2px solid var(--orange);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--wood-darker);
+    line-height: 1.6;
+  }
+
+  .divider { border: none; border-top: 2px dashed var(--wood); margin: 12px 0; }
+
+  .loan-status {
+    padding: 6px 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    text-align: center;
+    border: 2px solid var(--black);
+    margin-bottom: 10px;
+  }
+  .loan-status.active { background: #FFAAAA; }
+  .loan-status.clear { background: #A8E6CF; }
+  .loan-status.overdue { background: #FFD5A0; border-color: var(--orange); }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 4px 4px 0 var(--black), 0 0 0 0 rgba(240,192,64,0); }
+    50% { box-shadow: 4px 4px 0 var(--black), 0 0 10px 4px rgba(240,192,64,0.5); }
+  }
+  .btn-pulse { animation: pulse-glow 2s infinite; }
+
+  .name-suggest-box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 6px);
+    background: var(--cream);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    max-height: 160px;
+    overflow-y: auto;
+    z-index: 50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wood-dark) var(--cream);
+  }
+  .name-suggest-item {
+    padding: 8px 12px;
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: var(--black);
+    cursor: pointer;
+    border-bottom: 1px solid var(--wood-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .name-suggest-item:last-child { border-bottom: none; }
+  .name-suggest-item:hover, .name-suggest-item.active-suggest { background: var(--sky-dark); color: var(--white); }
+  .name-suggest-item .ns-matched { font-weight: bold; text-decoration: underline; }
+
+  #member-list::-webkit-scrollbar { width: 10px; }
+  #member-list::-webkit-scrollbar-track { background: var(--wood-light); border: 1px solid var(--black); }
+  #member-list::-webkit-scrollbar-thumb { background: var(--wood-dark); border: 1px solid var(--black); }
+  .entry-list::-webkit-scrollbar { width: 10px; }
+  .entry-list::-webkit-scrollbar-track { background: var(--cream); border: 1px solid var(--wood); }
+  .entry-list::-webkit-scrollbar-thumb { background: var(--wood); border: 1px solid var(--black); }
+  .modal-body::-webkit-scrollbar { width: 10px; }
+  .modal-body::-webkit-scrollbar-track { background: var(--wood-light); border: 1px solid var(--wood); }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--wood-dark); border: 1px solid var(--black); }
+
+  #install-banner {
+    position: fixed;
+    bottom: 68px; left: 12px; right: 12px;
+    z-index: 150;
+    background: var(--wood-dark);
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    animation: bannerSlideUp 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  @keyframes bannerSlideUp { from { transform: translateY(120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes bannerSlideDown { from { transform: translateY(0); opacity: 1; } to { transform: translateY(120%); opacity: 0; } }
+  #install-banner.hiding { animation: bannerSlideDown 0.25s ease forwards; }
+  #install-banner-icon { font-size: 30px; flex-shrink: 0; }
+  #install-banner-text { flex: 1; min-width: 0; }
+  #install-banner-title { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--gold-light); margin-bottom: 4px; }
+  #install-banner-sub { font-family: 'VT323', monospace; font-size: 15px; color: var(--wood-light); line-height: 1.3; }
+  #install-banner-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+
+  #ios-banner {
+    position: fixed;
+    bottom: 68px; left: 12px; right: 12px;
+    z-index: 150;
+    background: var(--wood-dark);
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    padding: 14px 16px;
+    animation: bannerSlideUp 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  #ios-banner.hiding { animation: bannerSlideDown 0.25s ease forwards; }
+  #ios-banner-title { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--gold-light); margin-bottom: 8px; }
+  #ios-banner-steps { font-family: 'VT323', monospace; font-size: 16px; color: var(--wood-light); line-height: 1.5; }
+  #ios-banner-steps span { color: var(--gold-light); }
+  #ios-banner-close { position: absolute; top: 8px; right: 10px; font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 4px 7px; background: var(--red); color: white; border: 2px solid var(--black); box-shadow: 2px 2px 0 var(--black); cursor: pointer; }
+  #ios-banner-arrow { text-align: center; font-size: 22px; margin-top: 6px; color: var(--gold-light); animation: bounce 1s infinite; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+  #interest-toast {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--green);
+    color: white;
+    border: 3px solid var(--black);
+    box-shadow: 4px 4px 0 var(--black);
+    padding: 10px 18px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    text-align: center;
+    z-index: 999;
+    line-height: 1.8;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #interest-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div id="interest-toast"></div>
+
+<header id="header">
+  <div id="header-logo">
+    <div>
+      <h1>🪙 BUBU</h1>
+      <div id="header-sub">SAVINGS TRACKER SYSTEM</div>
+    </div>
+  </div>
+  <div class="header-btns">
+    <button class="btn btn-sky btn-sm" onclick="openHistory()">📜 History</button>
+  </div>
+</header>
+
+<main id="main">
+  <section id="overview">
+    <h2>📊 SYSTEM OVERVIEW</h2>
+    <div class="overview-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Members</div>
+        <div class="stat-value" id="ov-members">0</div>
+      </div>
+      <div class="stat-card highlight-green">
+
+        <div class="stat-label">Cash On Hand</div>
+        <div class="stat-value" id="ov-contributions">₱0</div>
+      </div>
+      <div class="stat-card highlight">
+        <div class="stat-label">Interest Collected</div>
+        <div class="stat-value" id="ov-interest">₱0</div>
+      </div>
+      <div class="stat-card highlight-red">
+        <div class="stat-label">Total Loaned</div>
+        <div class="stat-value" id="ov-loaned">₱0</div>
+      </div>
+      <div class="stat-card rate-card">
+        <div class="stat-label">Monthly Rate</div>
+        <div class="stat-value" id="ov-rate">—%</div>
+      </div>
+      <div class="stat-card highlight-orange">
+        <div class="stat-label">Accrued (Unpaid)</div>
+        <div class="stat-value" id="ov-accrued">₱0</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="members-section">
+    <h2>👥 MEMBERS</h2>
+    <div id="member-search-wrap">
+      <input type="text" id="member-search" placeholder="Search members..." oninput="onMemberSearchInput()">
+      <span id="member-search-icon">🔍</span>
+      <span id="member-search-clear" onclick="clearMemberSearch()">✖</span>
+    </div>
+    <div id="member-list">
+      <div class="empty-state" id="empty-msg">
+        NO MEMBERS YET<br><br>TAP "ADD MEMBER"<br>TO GET STARTED
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="bottom-bar">
+  <button class="btn btn-gold btn-lg btn-pulse" onclick="openAddMember()">➕ ADD MEMBER</button>
+  <button class="btn btn-wood btn-lg" onclick="openBackupRestore()">💾 BACKUP</button>
+</div>
+
+<button id="disclaimer-btn" onclick="showDisclaimer()">ℹ DISCLAIMER</button>
+
+<div id="install-banner" style="display:none;">
+  <div id="install-banner-icon">📲</div>
+  <div id="install-banner-text">
+    <div id="install-banner-title">INSTALL BUBU APP</div>
+    <div id="install-banner-sub">Add to home screen<br>for offline access!</div>
+  </div>
+  <div id="install-banner-actions">
+    <button class="btn btn-gold btn-sm" onclick="triggerInstall()">INSTALL</button>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:var(--wood-light);border:2px solid rgba(255,255,255,0.3);box-shadow:2px 2px 0 var(--black);font-family:'Press Start 2P',monospace;font-size:6px;" onclick="dismissInstallBanner()">NOT NOW</button>
+  </div>
+</div>
+<div id="ios-banner" style="display:none;">
+  <button id="ios-banner-close" onclick="dismissIosBanner()">✖ CLOSE</button>
+  <div id="ios-banner-title">📲 INSTALL BUBU APP</div>
+  <div id="ios-banner-steps">
+    1. Tap the <span>Share</span> button below ↓<br>
+    2. Scroll and tap <span>"Add to Home Screen"</span><br>
+    3. Tap <span>"Add"</span> — done! 🎉
+  </div>
+  <div id="ios-banner-arrow">▼</div>
+</div>
+
+<div class="modal-overlay" id="modal-interest" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">⚙️ SETUP MONTHLY INTEREST</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">🎯</div>
+      <div class="alert-banner">IMPORTANT: Select the MONTHLY interest rate for loans. Interest accrues every 30 days on the outstanding balance. This can only be set ONCE.</div>
+      <div class="form-group">
+        <div class="form-label">SELECT MONTHLY RATE (1% - 10%)</div>
+        <div class="interest-options" id="interest-options"></div>
+      </div>
+      <div id="rate-preview" style="text-align:center;padding:10px;font-size:14px;color:var(--wood-darker);display:none;line-height:1.8;">
+        Example: ₱1,000 loan<br>
+        Month 1 interest: +₱<span id="rate-example-monthly">0</span><br>
+        Month 2 total interest: +₱<span id="rate-example-2month">0</span><br>
+        (Simple interest, not compounded)
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gold" onclick="confirmInterestSetup()">✅ CONFIRM & LOCK</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-confirm-interest" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">⚠️ CONFIRM RATE</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">🔒</div>
+      <div class="confirm-message" id="confirm-interest-msg"></div>
+      <div class="alert-banner">WARNING: Once confirmed, the monthly interest rate CANNOT be changed. Proceed?</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="cancelConfirmInterest()">❌ CANCEL</button>
+      <button class="btn btn-gold" onclick="saveInterestRate()">🔒 LOCK IT IN</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-add-member" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">➕ ADD MEMBER</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-add-member')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">MEMBER NAME</label>
+        <div id="name-suggest-wrap" style="position:relative;">
+          <div id="name-suggest-box" class="name-suggest-box" style="display:none;"></div>
+          <input class="form-input" id="input-member-name" type="text" placeholder="Enter full name..." maxlength="40"
+            autocomplete="off"
+            oninput="onMemberNameInput()"
+            onkeydown="onMemberNameKeydown(event)"
+            onblur="scheduleHideSuggestions()"
+            onfocus="onMemberNameInput()">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-add-member')">CANCEL</button>
+      <button class="btn btn-green" onclick="confirmAddMember()">NEXT ▶</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-confirm-add" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">✅ CONFIRM ADD</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">👤</div>
+      <div class="confirm-message">Add this member?<br><br>"<span id="confirm-name-display"></span>"</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-add')">CANCEL</button>
+      <button class="btn btn-green" onclick="addMemberFinal()">✅ ADD MEMBER</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay member-detail-modal" id="modal-member-detail" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <span class="modal-title" id="detail-name">MEMBER</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-member-detail')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-info-grid">
+        <div class="detail-card">
+          <div class="lbl">Total Contributed</div>
+          <div class="val" id="d-contributed">₱0</div>
+        </div>
+        <div class="detail-card accent-green">
+          <div class="lbl">Total Paid (Loan)</div>
+          <div class="val" id="d-paid">₱0</div>
+        </div>
+        <div class="detail-card accent-red">
+          <div class="lbl">Original Loan</div>
+          <div class="val" id="d-loan-original">₱0</div>
+        </div>
+        <div class="detail-card accent-red">
+          <div class="lbl">Principal Balance</div>
+          <div class="val" id="d-loan-balance">₱0</div>
+        </div>
+        <div class="detail-card">
+          <div class="lbl">No. of Payments</div>
+          <div class="val" id="d-payments">0</div>
+        </div>
+        <div class="detail-card">
+          <div class="lbl">Joined Date</div>
+          <div class="val" id="d-joined" style="font-size:13px;"></div>
+        </div>
+      </div>
+
+      <div id="loan-accrual-panel-wrap" style="display:none;">
+        <div class="loan-accrual-panel">
+          <div class="accrual-grid">
+            <div class="accrual-item">
+              <div class="al">Monthly Rate</div>
+              <div class="av" id="d-monthly-rate">0%</div>
+            </div>
+            <div class="accrual-item">
+              <div class="al">Months Billed</div>
+              <div class="av" id="d-months-elapsed">0</div>
+            </div>
+            <div class="accrual-item">
+              <div class="al">Accrued Interest</div>
+              <div class="av danger" id="d-accrued-interest">₱0</div>
+            </div>
+            <div class="accrual-item">
+              <div class="al">Total Now Due</div>
+              <div class="av danger" id="d-total-due">₱0</div>
+            </div>
+          </div>
+          <div id="d-accrual-warning" class="accrual-warning" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="detail-card" style="background:#FFF0A0;border:2px solid var(--black);box-shadow:2px 2px 0 var(--black);">
+          <div class="lbl" style="color:var(--wood-darker);">🎁 Interest Share<br><span style="font-size:5px;font-weight:normal;">(from payments collected)</span></div>
+          <div class="val" id="d-interest-share" style="color:var(--wood-darker);">₱0</div>
+        </div>
+        <div class="detail-card" style="background:linear-gradient(135deg,#A8E6CF,#80D4B0);border:3px solid var(--black);box-shadow:3px 3px 0 var(--black);">
+          <div class="lbl" style="color:var(--wood-darker);">💵 TOTAL RECEIVABLE<br><span style="font-size:5px;font-weight:normal;">(contribution + interest share)</span></div>
+          <div class="val" id="d-total-receivable" style="color:var(--black);font-size:20px;font-weight:bold;">₱0</div>
+        </div>
+      </div>
+
+      <div class="alert-info" id="d-interest-note" style="display:none;"></div>
+
+      <div class="loan-status" id="d-loan-status">NO ACTIVE LOAN</div>
+
+      <div class="detail-actions">
+        <button class="btn btn-green btn-sm" onclick="openContribution()">💰 ADD CONTRIBUTION</button>
+        <button class="btn btn-sky btn-sm" id="btn-loan" onclick="openLoan()">🏦 MAKE LOAN</button>
+      </div>
+      <div class="detail-actions">
+        <button class="btn btn-wood btn-sm" id="btn-loan-pay" onclick="openLoanPayment()">💳 PAY LOAN</button>
+        <button class="btn btn-sm" style="background:var(--sky-deeper);color:white;border:2px solid black;box-shadow:2px 2px 0 black;font-family:'Press Start 2P',monospace;font-size:7px;" id="btn-release" onclick="confirmRelease()">📤 RELEASE</button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="section-title">📋 PAYMENT ENTRIES</div>
+      <div class="entry-list" id="d-entries">
+        <div class="entry-item" style="justify-content:center;color:#999;font-size:13px;">No entries yet</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="confirmDeleteMember()">🗑 REMOVE</button>
+      <button class="btn btn-sky btn-sm" onclick="closeModal('modal-member-detail')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-contribution" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">💰 ADD CONTRIBUTION</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-contribution')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">AMOUNT (₱)</label>
+        <input class="form-input" id="input-contribution" type="number" min="1" placeholder="0.00"
+          onkeydown="if(event.key==='Enter') confirmContribution()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-contribution')">CANCEL</button>
+      <button class="btn btn-green" onclick="confirmContribution()">NEXT ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm-contribution" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">✅ CONFIRM CONTRIBUTION</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">💰</div>
+      <div class="confirm-message" id="confirm-contrib-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-contribution')">CANCEL</button>
+      <button class="btn btn-green" onclick="addContributionFinal()">✅ CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-loan" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🏦 MAKE LOAN</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-loan')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-orange" id="loan-info-banner"></div>
+      <div class="form-group">
+        <label class="form-label">LOAN AMOUNT (₱)</label>
+        <input class="form-input" id="input-loan" type="number" min="1" placeholder="0.00"
+          oninput="updateLoanPreview()" onkeydown="if(event.key==='Enter') confirmLoan()">
+      </div>
+      <div id="loan-preview" style="display:none;text-align:center;padding:10px;background:var(--sky);border:2px solid var(--black);font-size:15px;line-height:1.8;">
+        <div>Principal: ₱<span id="lp-amount">0</span></div>
+        <div>Interest per month (<span id="lp-rate">0</span>%): ₱<span id="lp-monthly">0</span>/mo</div>
+        <div style="font-size:13px;color:#666;">Month 1 starts on day 0 · Month 2 at day 30 · etc.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-loan')">CANCEL</button>
+      <button class="btn btn-sky" onclick="confirmLoan()">NEXT ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm-loan" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">✅ CONFIRM LOAN</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">🏦</div>
+      <div class="confirm-message" id="confirm-loan-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-loan')">CANCEL</button>
+      <button class="btn btn-sky" onclick="addLoanFinal()">✅ CONFIRM LOAN</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-loan-payment" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">💳 PAY LOAN</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-loan-payment')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-banner" id="pay-loan-banner"></div>
+      <div class="form-group">
+        <label class="form-label">PAYMENT AMOUNT (₱)</label>
+        <input class="form-input" id="input-loan-payment" type="number" min="1" placeholder="0.00"
+          onkeydown="if(event.key==='Enter') confirmLoanPayment()">
+      </div>
+      <div id="pay-allocation-preview" style="display:none;background:var(--sky);border:2px solid var(--black);padding:10px;font-size:14px;line-height:1.8;margin-top:8px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-loan-payment')">CANCEL</button>
+      <button class="btn btn-wood" onclick="confirmLoanPayment()">NEXT ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm-loan-payment" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">✅ CONFIRM PAYMENT</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">💳</div>
+      <div class="confirm-message" id="confirm-loan-pay-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-loan-payment')">CANCEL</button>
+      <button class="btn btn-wood" onclick="addLoanPaymentFinal()">✅ CONFIRM PAYMENT</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm-release" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">⚠️ CONFIRM RELEASE</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">📤</div>
+      <div class="confirm-message" id="confirm-release-msg"></div>
+      <div class="alert-banner">WARNING: This will cashout all contributed money + interest share for this member. This action is recorded.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-release')">CANCEL</button>
+      <button class="btn btn-sky" onclick="releaseFinal()">📤 RELEASE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-confirm-delete" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">🗑 REMOVE MEMBER</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">⚠️</div>
+      <div class="confirm-message" id="confirm-delete-msg"></div>
+      <div class="alert-banner">WARNING: This will permanently remove this member and all their data!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sky btn-sm" onclick="closeModal('modal-confirm-delete')">CANCEL</button>
+      <button class="btn btn-red" onclick="deleteMemberFinal()">🗑 REMOVE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-history" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <span class="modal-title">📜 HISTORY LOG</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-history')">✖</button>
+    </div>
+    <div class="modal-body" id="history-list" style="padding:0;max-height:75vh;">
+      <div style="text-align:center;padding:30px;font-size:14px;color:#999;">No history yet</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sky btn-sm" onclick="closeModal('modal-history')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-backup" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title">💾 BACKUP &amp; RESTORE</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-backup')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">📦 BACKUP DATA</div>
+      <div style="font-family:'VT323',monospace;font-size:16px;color:var(--black);line-height:1.5;margin-bottom:12px;">
+        Save all BUBU data as a <strong>.json</strong> file. Keep it safe for restoring anytime.
+      </div>
+      <div id="backup-summary" style="background:var(--sky);border:2px solid var(--black);padding:10px 12px;margin-bottom:12px;font-size:15px;line-height:1.6;"></div>
+      <button class="btn btn-gold" style="width:100%;margin-bottom:20px;" onclick="doBackup()">📥 DOWNLOAD BACKUP FILE</button>
+
+      <hr class="divider">
+
+      <div class="section-title">🔄 RESTORE DATA</div>
+      <div style="font-family:'VT323',monospace;font-size:16px;color:var(--black);line-height:1.5;margin-bottom:12px;">
+        Select a BUBU backup <strong>.json</strong> file. <span style="color:var(--red);font-weight:bold;">⚠ This will OVERWRITE all current data!</span>
+      </div>
+      <div id="restore-file-zone" style="border:3px dashed var(--wood-dark);background:var(--cream);padding:18px;text-align:center;cursor:pointer;margin-bottom:10px;position:relative;" onclick="document.getElementById('restore-file-input').click()">
+        <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--wood-darker);line-height:2;">📂 TAP TO SELECT<br>BACKUP FILE</div>
+        <div id="restore-file-name" style="font-size:14px;color:var(--sky-deeper);margin-top:6px;"></div>
+        <input type="file" id="restore-file-input" accept=".json" style="display:none;" onchange="onRestoreFileSelected(event)">
+      </div>
+      <button class="btn btn-red" style="width:100%;opacity:0.5;" id="btn-do-restore" disabled onclick="confirmRestore()">🔄 RESTORE FROM FILE</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sky btn-sm" onclick="closeModal('modal-backup')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-confirm-restore" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">⚠️ CONFIRM RESTORE</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">⚠️</div>
+      <div class="confirm-message" id="confirm-restore-msg"></div>
+      <div class="alert-banner" style="margin-top:12px;">WARNING: All current data will be replaced. This cannot be undone!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sky btn-sm" onclick="closeModal('modal-confirm-restore')">CANCEL</button>
+      <button class="btn btn-red" onclick="doRestoreFinal()">🔄 YES, RESTORE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-restore-success" style="display:none;">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">✅ RESTORE SUCCESSFUL</span></div>
+    <div class="modal-body">
+      <div class="pixel-icon">🎉</div>
+      <div class="confirm-message" id="restore-success-msg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-green" onclick="closeRestoreSuccess()">✅ DONE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-disclaimer" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">ℹ️ DISCLAIMER</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-disclaimer')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="pixel-icon">📋</div>
+      <div style="font-family:'VT323',monospace;font-size:18px;line-height:1.6;color:var(--black);text-align:center;padding:10px;">
+        This app is <strong>NOT</strong> a financial tool and does <strong>NOT</strong> promote or endorse any lending or financial activities.
+        <br><br>
+        BUBU System is designed solely for <strong>tracking and recording</strong> the savings contributions of group members (commonly known as "Bubu" in Filipino community savings groups).
+        <br><br>
+        Interest is calculated using <strong>simple interest</strong>: each 30-day period adds the same fixed amount (principal × rate). No compounding.
+        <br><br>
+        All data is stored <strong>locally on this device</strong> and is not transmitted anywhere.
+        <br><br>
+        Use responsibly. 🙏
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gold" onclick="closeModal('modal-disclaimer')">✅ UNDERSTOOD</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const BACKUP_VERSION = 4;
+const MS_PER_MONTH = 30 * 24 * 60 * 60 * 1000;
+
+let db = {
+  interestRate: null,
+  members: [],
+  history: [],
+  totalLoaned: 0,
+  totalReleased: 0,
+  totalInterestCollected: 0,
+  knownNames: [],
+};
+
+let activeMemberId = null;
+let pendingInterestRate = null;
+let pendingContribAmount = null;
+let pendingLoanAmount = null;
+let pendingLoanPayAmount = null;
+let memberSearchTerm = '';
+let pendingRestoreData = null;
+
+
+function saveDB() {
+  localStorage.setItem('bubu_db_v3', JSON.stringify(db));
+}
+
+function loadDB() {
+  let raw = localStorage.getItem('bubu_db_v3');
+  if (!raw) raw = localStorage.getItem('bubu_db');
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      db = { ...db, ...parsed };
+    } catch(e) {}
+  }
+  if (!db.knownNames) db.knownNames = [];
+  if (typeof db.totalInterestCollected !== 'number') db.totalInterestCollected = db.totalInterestEarned || 0;
+  migrateMembers();
+  (db.members || []).forEach(m => rememberMemberName(m.name));
+}
+
+
+function migrateMembers() {
+  (db.members || []).forEach(m => {
+    if (typeof m.interestEarned !== 'number') m.interestEarned = 0;
+    if (!m.loanStartDate && m.loanBalance > 0) m.loanStartDate = Date.now();
+    if (typeof m.loanAccruedInterest !== 'number') m.loanAccruedInterest = 0;
+    if (!m.entries) m.entries = [];
+    if (typeof m.paymentCount !== 'number') m.paymentCount = 0;
+    if (typeof m.totalLoanPaid !== 'number') m.totalLoanPaid = 0;
+    if (typeof m.totalContributed !== 'number') m.totalContributed = 0;
+    if ((!m.loanAmount || m.loanAmount <= 0) && m.loanBalance > 0) {
+      m.loanAmount = m.loanBalance;
+    }
+  });
+}
+
+
+function computeAccruedInterest(member, now) {
+  if (!member.loanBalance || member.loanBalance <= 0) {
+    return { months: 0, billingMonths: 0, accrued: 0, totalDue: 0 };
+  }
+  if (!member.loanStartDate || !db.interestRate) {
+    return { months: 0, billingMonths: 0, accrued: 0, totalDue: member.loanBalance };
+  }
+
+  const elapsed = now - member.loanStartDate;
+  const monthsElapsed = Math.floor(elapsed / MS_PER_MONTH);
+  const billingMonths = monthsElapsed + 1;
+
+  const rate = db.interestRate / 100;
+  const totalInterestOwed = member.loanAmount * rate * billingMonths;
+
+  const alreadyPaid = member.loanAccruedInterest || 0;
+  const stillOwed = Math.max(0, totalInterestOwed - alreadyPaid);
+
+  return {
+    months: monthsElapsed,
+    billingMonths,
+    accrued: stillOwed,
+    totalInterestOwed,
+    alreadyPaid,
+    totalDue: member.loanBalance + stillOwed
+  };
+}
+
+function allocatePayment(member, paymentAmount, now) {
+  const accrual = computeAccruedInterest(member, now);
+  const interestOwed = accrual.accrued;
+
+  let interestPaid, principalPaid;
+  if (paymentAmount <= interestOwed) {
+    interestPaid = paymentAmount;
+    principalPaid = 0;
+  } else {
+    interestPaid = interestOwed;
+    principalPaid = paymentAmount - interestOwed;
+  }
+  return { interestPaid, principalPaid, interestOwed };
+}
+
+
+function distributeInterest(amount) {
+  if (!amount || amount <= 0) return [];
+  const eligible = db.members.filter(m => (m.totalContributed || 0) > 0);
+  if (eligible.length === 0) {
+    db.orphanInterest = (db.orphanInterest || 0) + amount;
+    return [];
+  }
+  const perMember = amount / eligible.length;
+  const shares = [];
+  eligible.forEach(m => {
+    m.interestEarned = (m.interestEarned || 0) + perMember;
+    shares.push({ name: m.name, share: perMember });
+  });
+  return shares;
+}
+
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const h = d.getHours();
+  const mn = d.getMinutes().toString().padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = (h % 12) || 12;
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${h12}:${mn} ${ampm}`;
+}
+
+function fmt(n) {
+  return '₱' + parseFloat(n || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function getMember(id) { return db.members.find(m => m.id === id); }
+function genId() { return 'mbr_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); }
+
+const MAX_ENTRIES_PER_MEMBER = 50;
+const MAX_HISTORY_ENTRIES = 300;
+
+function pushMemberEntry(member, entry) {
+  member.entries.push(entry);
+  if (member.entries.length > MAX_ENTRIES_PER_MEMBER) {
+    member.entries.splice(0, member.entries.length - MAX_ENTRIES_PER_MEMBER);
+  }
+}
+
+function addHistory(icon, title, detail) {
+  db.history.unshift({ icon, title, detail, ts: Date.now() });
+  if (db.history.length > MAX_HISTORY_ENTRIES) db.history.length = MAX_HISTORY_ENTRIES;
+}
+
+
+function updateOverview() {
+  document.getElementById('ov-members').textContent = db.members.length;
+
+  let totalContrib = 0;
+  db.members.forEach(m => { totalContrib += (m.totalContributed || 0); });
+
+  // FIX 2: Cash On Hand = total contributions minus amount currently loaned out
+  const cashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0));
+  document.getElementById('ov-contributions').textContent = fmt(cashOnHand);
+
+  document.getElementById('ov-interest').textContent = fmt(db.totalInterestCollected || 0);
+  document.getElementById('ov-loaned').textContent = fmt(db.totalLoaned);
+  document.getElementById('ov-rate').textContent = db.interestRate !== null ? db.interestRate + '%/mo' : '—%';
+
+  const now = Date.now();
+  let totalAccrued = 0;
+  db.members.forEach(m => {
+    if (m.loanBalance > 0) {
+      const accrual = computeAccruedInterest(m, now);
+      totalAccrued += accrual.accrued;
+    }
+  });
+  document.getElementById('ov-accrued').textContent = fmt(totalAccrued);
+}
+
+
+function onMemberSearchInput() {
+  memberSearchTerm = document.getElementById('member-search').value;
+  document.getElementById('member-search-clear').style.display = memberSearchTerm ? 'block' : 'none';
+  renderMembers();
+}
+
+function clearMemberSearch() {
+  memberSearchTerm = '';
+  document.getElementById('member-search').value = '';
+  document.getElementById('member-search-clear').style.display = 'none';
+  renderMembers();
+}
+
+
+function renderMembers() {
+  const list = document.getElementById('member-list');
+  const searchWrap = document.getElementById('member-search-wrap');
+  list.innerHTML = '';
+
+  if (db.members.length === 0) {
+    searchWrap.style.display = 'none';
+    list.appendChild(Object.assign(document.createElement('div'), {
+      className: 'empty-state',
+      innerHTML: 'NO MEMBERS YET<br><br>TAP "ADD MEMBER"<br>TO GET STARTED'
+    }));
+    updateOverview();
+    return;
+  }
+
+  searchWrap.style.display = 'block';
+  const term = memberSearchTerm.trim().toLowerCase();
+  const filtered = term ? db.members.filter(m => m.name.toLowerCase().includes(term)) : db.members;
+
+  if (filtered.length === 0) {
+    list.appendChild(Object.assign(document.createElement('div'), {
+      className: 'no-results',
+      innerHTML: 'NO MATCHES FOUND<br><br>TRY A DIFFERENT NAME'
+    }));
+    updateOverview();
+    return;
+  }
+
+  const now = Date.now();
+  filtered.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'member-item';
+    const hasLoan = m.loanBalance > 0;
+    const interestShare = m.interestEarned || 0;
+    let accruedBadge = '';
+    if (hasLoan) {
+      const accrual = computeAccruedInterest(m, now);
+      if (accrual.accrued > 0) {
+        accruedBadge = `<span class="member-badge accrued">+${fmt(accrual.accrued)} int</span>`;
+      }
+    }
+    div.innerHTML = `
+      <div>
+        <div class="member-name">${m.name}</div>
+        <div class="member-meta">Contributed: ${fmt(m.totalContributed)}
+          ${hasLoan ? `<span class="member-badge loan">LOAN: ${fmt(m.loanBalance)}</span>` : ''}
+          ${accruedBadge}
+          ${interestShare > 0 ? `<span class="member-badge" style="background:#FFF0A0;">🎁 ${fmt(interestShare)}</span>` : ''}
+        </div>
+      </div>
+    `;
+    div.onclick = () => openMemberDetail(m.id);
+    list.appendChild(div);
+  });
+  updateOverview();
+}
+
+
+function checkInterestSetup() {
+  if (db.interestRate === null) {
+    buildInterestOptions();
+    document.getElementById('modal-interest').style.display = 'flex';
+  }
+}
+
+function buildInterestOptions() {
+  const container = document.getElementById('interest-options');
+  container.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('div');
+    btn.className = 'interest-opt';
+    btn.textContent = i + '%';
+    btn.onclick = () => selectInterestOpt(i, btn);
+    container.appendChild(btn);
+  }
+}
+
+function selectInterestOpt(rate, el) {
+  document.querySelectorAll('.interest-opt').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  pendingInterestRate = rate;
+  const preview = document.getElementById('rate-preview');
+  preview.style.display = 'block';
+  const monthly = 1000 * rate / 100;
+  document.getElementById('rate-example-monthly').textContent = monthly.toFixed(2);
+  document.getElementById('rate-example-2month').textContent = (monthly * 2).toFixed(2);
+}
+
+function confirmInterestSetup() {
+  if (!pendingInterestRate) { alert('Please select a monthly interest rate!'); return; }
+  document.getElementById('confirm-interest-msg').innerHTML =
+    `Set MONTHLY interest rate to<br><br><strong>${pendingInterestRate}% per month</strong><br><br>Simple interest: same fixed amount each 30-day period. No compounding.<br><br>This CANNOT be changed later.`;
+  document.getElementById('modal-interest').style.display = 'none';
+  document.getElementById('modal-confirm-interest').style.display = 'flex';
+}
+
+function cancelConfirmInterest() {
+  document.getElementById('modal-confirm-interest').style.display = 'none';
+  document.getElementById('modal-interest').style.display = 'flex';
+}
+
+function saveInterestRate() {
+  db.interestRate = pendingInterestRate;
+  addHistory('⚙️', 'Monthly Interest Rate Set', `Rate locked at ${db.interestRate}% per month (simple interest)`);
+  saveDB();
+  updateOverview();
+  closeModal('modal-confirm-interest');
+}
+
+
+let suggestActiveIndex = -1;
+let suggestCurrentMatches = [];
+let suggestHideTimer = null;
+
+function openAddMember() {
+  if (db.interestRate === null) { checkInterestSetup(); return; }
+  document.getElementById('input-member-name').value = '';
+  hideNameSuggestions();
+  document.getElementById('modal-add-member').style.display = 'flex';
+  setTimeout(() => document.getElementById('input-member-name').focus(), 100);
+}
+
+function onMemberNameInput() {
+  const input = document.getElementById('input-member-name');
+  input.value = input.value.toUpperCase();
+  const typed = input.value.trim();
+  if (!typed) { hideNameSuggestions(); return; }
+  const names = db.knownNames || [];
+  const matches = names.filter(n => n.toUpperCase().startsWith(typed));
+  suggestCurrentMatches = matches;
+  suggestActiveIndex = -1;
+  if (matches.length === 0) { hideNameSuggestions(); return; }
+  renderNameSuggestions(matches, typed);
+}
+
+function renderNameSuggestions(matches, typed) {
+  const box = document.getElementById('name-suggest-box');
+  box.innerHTML = '';
+  matches.forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'name-suggest-item';
+    const matchedPart = name.substring(0, typed.length);
+    const restPart = name.substring(typed.length);
+    item.innerHTML = `<span>👤</span><span><span class="ns-matched">${matchedPart}</span>${restPart}</span>`;
+    item.onmousedown = e => { e.preventDefault(); selectSuggestedName(name); };
+    box.appendChild(item);
+  });
+  box.style.display = 'block';
+}
+
+function highlightActiveSuggestion() {
+  const box = document.getElementById('name-suggest-box');
+  const items = box.querySelectorAll('.name-suggest-item');
+  items.forEach((el, idx) => {
+    el.classList.toggle('active-suggest', idx === suggestActiveIndex);
+    if (idx === suggestActiveIndex) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function onMemberNameKeydown(event) {
+  const box = document.getElementById('name-suggest-box');
+  const isOpen = box.style.display === 'block' && suggestCurrentMatches.length > 0;
+  if (isOpen && event.key === 'ArrowDown') { event.preventDefault(); suggestActiveIndex = Math.min(suggestActiveIndex + 1, suggestCurrentMatches.length - 1); highlightActiveSuggestion(); return; }
+  if (isOpen && event.key === 'ArrowUp') { event.preventDefault(); suggestActiveIndex = Math.max(suggestActiveIndex - 1, 0); highlightActiveSuggestion(); return; }
+  if (event.key === 'Enter') { if (isOpen && suggestActiveIndex >= 0) { event.preventDefault(); selectSuggestedName(suggestCurrentMatches[suggestActiveIndex]); return; } confirmAddMember(); return; }
+  if (event.key === 'Escape') hideNameSuggestions();
+}
+
+function selectSuggestedName(name) {
+  document.getElementById('input-member-name').value = name;
+  hideNameSuggestions();
+  document.getElementById('input-member-name').focus();
+}
+
+function hideNameSuggestions() {
+  const box = document.getElementById('name-suggest-box');
+  box.style.display = 'none';
+  box.innerHTML = '';
+  suggestCurrentMatches = [];
+  suggestActiveIndex = -1;
+}
+
+function scheduleHideSuggestions() {
+  if (suggestHideTimer) clearTimeout(suggestHideTimer);
+  suggestHideTimer = setTimeout(hideNameSuggestions, 150);
+}
+
+function rememberMemberName(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  if (!db.knownNames) db.knownNames = [];
+  if (!db.knownNames.some(n => n.toLowerCase() === trimmed.toLowerCase())) db.knownNames.push(trimmed);
+}
+
+function confirmAddMember() {
+  const name = document.getElementById('input-member-name').value.trim();
+  if (!name) { alert('Please enter a member name!'); return; }
+  if (db.members.find(m => m.name === name)) { alert('A member with this name already exists!'); return; }
+  document.getElementById('confirm-name-display').textContent = name;
+  closeModal('modal-add-member');
+  document.getElementById('modal-confirm-add').style.display = 'flex';
+}
+
+function addMemberFinal() {
+  const name = document.getElementById('input-member-name').value.trim();
+  const member = {
+    id: genId(),
+    name,
+    joinedAt: Date.now(),
+    totalContributed: 0,
+    loanBalance: 0,
+    loanAmount: 0,
+    loanStartDate: null,
+    loanAccruedInterest: 0,
+    totalLoanPaid: 0,
+    paymentCount: 0,
+    interestEarned: 0,
+    entries: [],
+  };
+  db.members.push(member);
+  rememberMemberName(name);
+  addHistory('👤', 'Member Added', `${name} joined the group`);
+  saveDB();
+  closeModal('modal-confirm-add');
+  renderMembers();
+}
+
+
+function openMemberDetail(id) {
+  activeMemberId = id;
+  refreshMemberDetail();
+  document.getElementById('modal-member-detail').style.display = 'flex';
+}
+
+function refreshMemberDetail() {
+  const m = getMember(activeMemberId);
+  if (!m) return;
+  const now = Date.now();
+
+  document.getElementById('detail-name').textContent = m.name;
+  document.getElementById('d-contributed').textContent = fmt(m.totalContributed);
+  document.getElementById('d-joined').textContent = formatDate(m.joinedAt).split(' ').slice(0,3).join(' ');
+  document.getElementById('d-loan-original').textContent = fmt(m.loanAmount);
+  document.getElementById('d-loan-balance').textContent = fmt(m.loanBalance);
+
+  // FIX 1: Show totalLoanPaid only while a loan is active; clear to ₱0 when no loan
+  document.getElementById('d-paid').textContent = m.loanBalance > 0 ? fmt(m.totalLoanPaid) : fmt(0);
+
+  document.getElementById('d-payments').textContent = m.paymentCount;
+
+  const interestShare = m.interestEarned || 0;
+  const totalReceivable = m.totalContributed + interestShare;
+  document.getElementById('d-interest-share').textContent = fmt(interestShare);
+  document.getElementById('d-total-receivable').textContent = fmt(totalReceivable);
+
+  // Interest note
+  const noteEl = document.getElementById('d-interest-note');
+  if (interestShare > 0) {
+    noteEl.style.display = 'block';
+    noteEl.innerHTML = `🎁 You receive an equal share of interest every time any member makes a loan payment. Your share updates <strong>immediately</strong> with every payment made in the group.`;
+  } else if (m.totalContributed > 0) {
+    noteEl.style.display = 'block';
+    noteEl.innerHTML = `ℹ️ Your interest share will appear here when anyone in the group makes a loan payment. All contributing members share equally!`;
+  } else {
+    noteEl.style.display = 'none';
+  }
+
+  // Monthly accrual panel
+  const accrualWrap = document.getElementById('loan-accrual-panel-wrap');
+  if (m.loanBalance > 0 && db.interestRate) {
+    accrualWrap.style.display = 'block';
+    const accrual = computeAccruedInterest(m, now);
+    document.getElementById('d-monthly-rate').textContent = db.interestRate + '%';
+    document.getElementById('d-months-elapsed').textContent = accrual.billingMonths;
+    document.getElementById('d-accrued-interest').textContent = fmt(accrual.accrued);
+    document.getElementById('d-total-due').textContent = fmt(accrual.totalDue);
+
+    const warningEl = document.getElementById('d-accrual-warning');
+    warningEl.style.display = 'block';
+    if (accrual.billingMonths >= 3) {
+      warningEl.textContent = `⚠ Month ${accrual.billingMonths} interest applied! Pay soon to avoid more.`;
+    } else if (accrual.billingMonths >= 2) {
+      warningEl.textContent = `⏰ Month ${accrual.billingMonths} interest applied — pay before next 30-day period!`;
+    } else {
+      warningEl.textContent = `🎯 Month 1 interest applied (days 0–29). Next month's interest at day 30.`;
+    }
+  } else {
+    accrualWrap.style.display = 'none';
+  }
+
+  // Loan status
+  const loanStatus = document.getElementById('d-loan-status');
+  const btnLoan = document.getElementById('btn-loan');
+  const btnLoanPay = document.getElementById('btn-loan-pay');
+
+  if (m.loanBalance > 0) {
+    const accrual = computeAccruedInterest(m, now);
+    if (accrual.billingMonths >= 2) {
+      loanStatus.textContent = `ACTIVE LOAN: ${fmt(m.loanBalance)} + ${fmt(accrual.accrued)} interest`;
+      loanStatus.className = 'loan-status overdue';
+    } else {
+      loanStatus.textContent = `ACTIVE LOAN: ${fmt(m.loanBalance)} principal + ${fmt(accrual.accrued)} interest`;
+      loanStatus.className = 'loan-status active';
+    }
+    btnLoan.disabled = true;
+    btnLoan.style.opacity = '0.5';
+    btnLoanPay.disabled = false;
+    btnLoanPay.style.opacity = '1';
+  } else {
+    loanStatus.textContent = 'NO ACTIVE LOAN';
+    loanStatus.className = 'loan-status clear';
+    btnLoan.disabled = false;
+    btnLoan.style.opacity = '1';
+    btnLoanPay.disabled = true;
+    btnLoanPay.style.opacity = '0.5';
+  }
+
+  // Entries
+  const entriesEl = document.getElementById('d-entries');
+  entriesEl.innerHTML = '';
+  if (m.entries.length === 0) {
+    entriesEl.innerHTML = '<div class="entry-item" style="justify-content:center;color:#999;font-size:13px;">No entries yet</div>';
+  } else {
+    [...m.entries].reverse().forEach(e => {
+      const div = document.createElement('div');
+      div.className = 'entry-item';
+      let typeClass = 'contrib', typeLabel = 'CONTRIB';
+      if (e.type === 'loan') { typeClass = 'loan-taken'; typeLabel = 'LOAN'; }
+      else if (e.type === 'loan_pay') { typeClass = 'loan-pay'; typeLabel = 'PAYMENT'; }
+      else if (e.type === 'release') { typeClass = 'release'; typeLabel = 'RELEASE'; }
+
+      const releaseDetail = (e.type === 'release' && e.interestShare)
+        ? `<div style="font-size:11px;color:var(--green-light);">+${fmt(e.interestShare)} interest share</div>` : '';
+
+      const payDetail = (e.type === 'loan_pay')
+        ? `<div style="font-size:11px;color:var(--sky-deeper);">` +
+          (e.interestPaid > 0 ? `Interest: ${fmt(e.interestPaid)} | ` : '') +
+          (e.principalPaid > 0 ? `Principal: ${fmt(e.principalPaid)}` : '') +
+          `</div>` : '';
+
+      div.innerHTML = `
+        <div>
+          <span class="entry-type ${typeClass}">${typeLabel}</span>
+          <div class="entry-date">${formatDate(e.ts)}</div>
+          ${releaseDetail}${payDetail}
+        </div>
+        <div class="entry-amount">${fmt(e.amount)}</div>
+      `;
+      entriesEl.appendChild(div);
+    });
+  }
+}
+
+
+function openContribution() {
+  document.getElementById('input-contribution').value = '';
+  document.getElementById('modal-contribution').style.display = 'flex';
+  setTimeout(() => document.getElementById('input-contribution').focus(), 100);
+}
+
+function confirmContribution() {
+  const val = parseFloat(document.getElementById('input-contribution').value);
+  if (!val || val <= 0) { alert('Enter a valid amount!'); return; }
+  pendingContribAmount = val;
+  const m = getMember(activeMemberId);
+  document.getElementById('confirm-contrib-msg').innerHTML =
+    `Add contribution of<br><br>${fmt(val)}<br><br>to <strong>${m.name}</strong>?`;
+  closeModal('modal-contribution');
+  document.getElementById('modal-confirm-contribution').style.display = 'flex';
+}
+
+function addContributionFinal() {
+  const m = getMember(activeMemberId);
+  if (!m) return;
+  m.totalContributed += pendingContribAmount;
+  pushMemberEntry(m, { type: 'contribution', amount: pendingContribAmount, ts: Date.now() });
+  m.paymentCount += 1;
+  addHistory('💰', 'Contribution Added', `${m.name} contributed ${fmt(pendingContribAmount)}`);
+  saveDB();
+  closeModal('modal-confirm-contribution');
+  refreshMemberDetail();
+  renderMembers();
+}
+
+
+function openLoan() {
+  const m = getMember(activeMemberId);
+  if (m.loanBalance > 0) { alert('This member already has an active loan!'); return; }
+  if (db.interestRate === null) { alert('Interest rate not set!'); return; }
+  document.getElementById('loan-info-banner').innerHTML =
+    `Monthly interest: <strong>${db.interestRate}%</strong> (simple, no compounding)<br>
+    Month 1 starts day 0 — month 2 at day 30 — and so on`;
+  document.getElementById('input-loan').value = '';
+  document.getElementById('loan-preview').style.display = 'none';
+  document.getElementById('modal-loan').style.display = 'flex';
+  setTimeout(() => document.getElementById('input-loan').focus(), 100);
+}
+
+function updateLoanPreview() {
+  const val = parseFloat(document.getElementById('input-loan').value);
+  if (!val || val <= 0) { document.getElementById('loan-preview').style.display = 'none'; return; }
+  const monthlyInterest = val * db.interestRate / 100;
+  document.getElementById('lp-amount').textContent = val.toLocaleString('en-PH', {minimumFractionDigits:2});
+  document.getElementById('lp-rate').textContent = db.interestRate;
+  document.getElementById('lp-monthly').textContent = monthlyInterest.toLocaleString('en-PH', {minimumFractionDigits:2});
+  document.getElementById('loan-preview').style.display = 'block';
+}
+
+function confirmLoan() {
+  const m = getMember(activeMemberId);
+  const val = parseFloat(document.getElementById('input-loan').value);
+  if (!val || val <= 0) { alert('Enter a valid loan amount!'); return; }
+  pendingLoanAmount = val;
+  const monthlyInterest = val * db.interestRate / 100;
+  document.getElementById('confirm-loan-msg').innerHTML =
+    `Loan for <strong>${m.name}</strong><br><br>
+    Principal: ${fmt(val)}<br>
+    Interest per month (${db.interestRate}%): ${fmt(monthlyInterest)}<br>
+    <span style="font-size:14px;color:#888;">Month 1 interest (${fmt(monthlyInterest)}) starts on day 0. Another ${fmt(monthlyInterest)} added every 30 days.</span>`;
+  closeModal('modal-loan');
+  document.getElementById('modal-confirm-loan').style.display = 'flex';
+}
+
+function addLoanFinal() {
+  const m = getMember(activeMemberId);
+  const val = pendingLoanAmount;
+
+  m.loanAmount = val;
+  m.loanBalance = val;
+  m.loanStartDate = Date.now();
+  m.loanAccruedInterest = 0;
+
+  db.totalLoaned += val;
+
+  pushMemberEntry(m, {
+    type: 'loan',
+    amount: val,
+    ts: Date.now(),
+    monthlyRate: db.interestRate
+  });
+
+  const firstMonthInterest = val * db.interestRate / 100;
+  addHistory('🏦', 'Loan Made', `${m.name} loaned ${fmt(val)} @ ${db.interestRate}%/month (simple) — ${fmt(firstMonthInterest)} interest in month 1`);
+  saveDB();
+  closeModal('modal-confirm-loan');
+  refreshMemberDetail();
+  renderMembers();
+
+  showInterestToast([
+    `🎯 Loan created for ${m.name}`,
+    `Month 1 interest: ${fmt(firstMonthInterest)}`
+  ]);
+}
+
+
+function openLoanPayment() {
+  const m = getMember(activeMemberId);
+  if (m.loanBalance <= 0) { alert('No active loan to pay!'); return; }
+
+  const now = Date.now();
+  const accrual = computeAccruedInterest(m, now);
+  const totalDue = accrual.totalDue;
+
+  document.getElementById('pay-loan-banner').innerHTML =
+    `Principal balance: <strong>${fmt(m.loanBalance)}</strong><br>` +
+    `Accrued interest (month ${accrual.billingMonths}): <strong style="color:var(--red)">${fmt(accrual.accrued)}</strong><br>` +
+    `Total due: <strong>${fmt(totalDue)}</strong>`;
+
+  document.getElementById('input-loan-payment').value = '';
+  document.getElementById('pay-allocation-preview').style.display = 'none';
+  document.getElementById('modal-loan-payment').style.display = 'flex';
+
+  document.getElementById('input-loan-payment').oninput = function() {
+    const val = parseFloat(this.value);
+    const preview = document.getElementById('pay-allocation-preview');
+    if (!val || val <= 0) { preview.style.display = 'none'; return; }
+    const alloc = allocatePayment(m, val, now);
+    preview.style.display = 'block';
+    preview.innerHTML =
+      `Interest paid: <strong style="color:var(--red)">${fmt(alloc.interestPaid)}</strong><br>` +
+      `Principal paid: <strong>${fmt(alloc.principalPaid)}</strong><br>` +
+      (alloc.principalPaid > 0 ? `Remaining principal: <strong>${fmt(Math.max(0, m.loanBalance - alloc.principalPaid))}</strong>` : '');
+  };
+
+  setTimeout(() => document.getElementById('input-loan-payment').focus(), 100);
+}
+
+function confirmLoanPayment() {
+  const m = getMember(activeMemberId);
+  const val = parseFloat(document.getElementById('input-loan-payment').value);
+  if (!val || val <= 0) { alert('Enter a valid payment amount!'); return; }
+
+  const now = Date.now();
+  const accrual = computeAccruedInterest(m, now);
+  const maxPayable = accrual.totalDue;
+
+  if (val > maxPayable) {
+    alert(`Payment exceeds total amount due! Max: ${fmt(maxPayable)}`);
+    return;
+  }
+
+  pendingLoanPayAmount = val;
+  const alloc = allocatePayment(m, val, now);
+  const newPrincipal = Math.max(0, m.loanBalance - alloc.principalPaid);
+
+  document.getElementById('confirm-loan-pay-msg').innerHTML =
+    `Payment of ${fmt(val)}<br><br>` +
+    (alloc.interestPaid > 0 ? `Interest paid: ${fmt(alloc.interestPaid)}<br>` : '') +
+    `Principal paid: ${fmt(alloc.principalPaid)}<br>` +
+    `Remaining principal: ${fmt(newPrincipal)}`;
+
+  closeModal('modal-loan-payment');
+  document.getElementById('modal-confirm-loan-payment').style.display = 'flex';
+}
+
+function addLoanPaymentFinal() {
+  const m = getMember(activeMemberId);
+  const val = pendingLoanPayAmount;
+  const now = Date.now();
+  const alloc = allocatePayment(m, val, now);
+
+  // Apply principal reduction
+  m.loanBalance = Math.max(0, m.loanBalance - alloc.principalPaid);
+  m.totalLoanPaid += val;
+  m.paymentCount += 1;
+
+  // Track how much interest has been collected from this borrower
+  m.loanAccruedInterest = (m.loanAccruedInterest || 0) + alloc.interestPaid;
+
+  // Reduce outstanding principal tracker
+  db.totalLoaned = Math.max(0, db.totalLoaned - alloc.principalPaid);
+
+  // Distribute interest equally to all contributing members
+  let distributionNote = '';
+  if (alloc.interestPaid > 0) {
+    const shares = distributeInterest(alloc.interestPaid);
+    db.totalInterestCollected = (db.totalInterestCollected || 0) + alloc.interestPaid;
+    const eligible = shares.length;
+    if (eligible > 0) {
+      distributionNote = ` | ${fmt(alloc.interestPaid)} interest split equally among ${eligible} member${eligible>1?'s':''}`;
+      showInterestToast([
+        `🎁 ${fmt(alloc.interestPaid)} interest collected!`,
+        `Split equally: ${fmt(shares[0].share)} × ${eligible} member${eligible>1?'s':''}`
+      ]);
+    }
+  }
+
+  pushMemberEntry(m, {
+    type: 'loan_pay',
+    amount: val,
+    ts: now,
+    interestPaid: alloc.interestPaid,
+    principalPaid: alloc.principalPaid,
+    remaining: m.loanBalance
+  });
+
+  // FIX 3: On full payoff, clear ALL loan fields including totalLoanPaid
+  if (m.loanBalance <= 0) {
+    m.loanBalance = 0;
+    m.loanAmount = 0;           // clear original loan amount
+    m.loanStartDate = null;     // clear start date
+    m.loanAccruedInterest = 0;  // reset collected interest tracker
+    m.totalLoanPaid = 0;        // clear paid display since loan is gone
+    addHistory('✅', 'Loan Fully Paid!', `${m.name} fully paid their loan!${distributionNote}`);
+    showInterestToast([`✅ Loan fully paid!`, `${m.name}'s loan is now CLEAR`]);
+  } else {
+    addHistory('💳', 'Loan Payment', `${m.name} paid ${fmt(val)}, balance: ${fmt(m.loanBalance)}${distributionNote}`);
+  }
+
+  saveDB();
+  closeModal('modal-confirm-loan-payment');
+  refreshMemberDetail();
+  renderMembers();
+}
+
+
+function confirmRelease() {
+  const m = getMember(activeMemberId);
+  if (m.loanBalance > 0) { alert('Cannot release while there is an active loan!'); return; }
+  if (m.totalContributed <= 0 && (m.interestEarned || 0) <= 0) {
+    alert('No contributions or interest to release!'); return;
+  }
+  const interestShare = m.interestEarned || 0;
+  const totalReceivable = m.totalContributed + interestShare;
+  document.getElementById('confirm-release-msg').innerHTML =
+    `Release funds for<br><br><strong>${m.name}</strong><br><br>` +
+    `Contributions: ${fmt(m.totalContributed)}<br>` +
+    `Interest Share: <span style="color:var(--green)">+${fmt(interestShare)}</span><br>` +
+    `<strong>Total Payout: ${fmt(totalReceivable)}</strong>`;
+  document.getElementById('modal-confirm-release').style.display = 'flex';
+}
+
+function releaseFinal() {
+  const m = getMember(activeMemberId);
+  const interestShare = m.interestEarned || 0;
+  const totalReceivable = m.totalContributed + interestShare;
+
+  db.totalReleased += totalReceivable;
+
+  db.totalInterestCollected = Math.max(0, (db.totalInterestCollected || 0) - interestShare);
+
+  pushMemberEntry(m, {
+    type: 'release',
+    amount: totalReceivable,
+    ts: Date.now(),
+    contribution: m.totalContributed,
+    interestShare
+  });
+
+  m.totalContributed = 0;
+  m.interestEarned = 0;
+
+  addHistory('📤', 'Money Released', `${m.name} received ${fmt(totalReceivable)} (incl. ${fmt(interestShare)} interest share)`);
+  saveDB();
+  closeModal('modal-confirm-release');
+  refreshMemberDetail();
+  renderMembers();
+}
+
+
+function confirmDeleteMember() {
+  const m = getMember(activeMemberId);
+  document.getElementById('confirm-delete-msg').innerHTML =
+    `Remove member<br><br><strong>${m.name}</strong><br><br>from the system?`;
+  document.getElementById('modal-confirm-delete').style.display = 'flex';
+}
+
+function deleteMemberFinal() {
+  const m = getMember(activeMemberId);
+  const name = m.name;
+  if (m.loanBalance > 0) {
+    db.totalLoaned = Math.max(0, db.totalLoaned - m.loanBalance);
+  }
+  db.members = db.members.filter(mb => mb.id !== activeMemberId);
+  addHistory('🗑️', 'Member Removed', `${name} was removed from the group`);
+  saveDB();
+  closeModal('modal-confirm-delete');
+  closeModal('modal-member-detail');
+  renderMembers();
+}
+
+
+function openHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  if (db.history.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;font-size:14px;color:#999;">No history yet</div>';
+  } else {
+    db.history.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'history-entry';
+      div.innerHTML = `
+        <div class="history-icon">${h.icon}</div>
+        <div class="history-text">
+          <div class="history-title">${h.title}</div>
+          <div style="font-size:14px;color:#555;">${h.detail}</div>
+          <div class="history-date">${formatDate(h.ts)}</div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+  document.getElementById('modal-history').style.display = 'flex';
+}
+
+
+function showDisclaimer() {
+  document.getElementById('modal-disclaimer').style.display = 'flex';
+}
+
+
+function openBackupRestore() {
+  let totalContrib = 0;
+  db.members.forEach(m => { totalContrib += (m.totalContributed || 0); });
+  const totalInterestShares = db.members.reduce((s, m) => s + (m.interestEarned || 0), 0);
+  const now = Date.now();
+  let totalAccrued = 0;
+  db.members.forEach(m => {
+    if (m.loanBalance > 0) {
+      const accrual = computeAccruedInterest(m, now);
+      totalAccrued += accrual.accrued;
+    }
+  });
+
+  document.getElementById('backup-summary').innerHTML =
+    `👥 Members: <strong>${db.members.length}</strong><br>` +
+    `💰 Total Contributions: <strong>${fmt(totalContrib)}</strong><br>` +
+    `🎁 Interest Shares (total): <strong>${fmt(totalInterestShares)}</strong><br>` +
+    `💳 Interest Collected: <strong>${fmt(db.totalInterestCollected || 0)}</strong><br>` +
+    `⏰ Accrued (unpaid): <strong>${fmt(totalAccrued)}</strong><br>` +
+    `📜 History Entries: <strong>${db.history.length}</strong><br>` +
+    `📅 Backup Date: <strong>${formatDate(Date.now())}</strong>`;
+
+  document.getElementById('restore-file-name').textContent = '';
+  document.getElementById('restore-file-input').value = '';
+  document.getElementById('btn-do-restore').disabled = true;
+  document.getElementById('btn-do-restore').style.opacity = '0.5';
+  pendingRestoreData = null;
+  document.getElementById('modal-backup').style.display = 'flex';
+}
+
+function doBackup() {
+  const payload = {
+    _bubu_backup: true,
+    _version: BACKUP_VERSION,
+    _savedAt: Date.now(),
+    _savedAtReadable: formatDate(Date.now()),
+    data: JSON.parse(JSON.stringify(db))
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const now = new Date();
+  const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bubu_backup_v${BACKUP_VERSION}_${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  addHistory('💾', 'Backup Created', `Data backed up on ${formatDate(Date.now())}`);
+  saveDB();
+}
+
+function onRestoreFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('restore-file-name').textContent = '📄 ' + file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed._bubu_backup || !parsed.data) {
+        alert('❌ Invalid backup file! Please select a valid BUBU backup .json file.');
+        document.getElementById('restore-file-name').textContent = '❌ Invalid file';
+        document.getElementById('btn-do-restore').disabled = true;
+        document.getElementById('btn-do-restore').style.opacity = '0.5';
+        pendingRestoreData = null;
+        return;
+      }
+      pendingRestoreData = parsed;
+      document.getElementById('restore-file-name').textContent = `✅ ${file.name} (v${parsed._version || '?'})`;
+      document.getElementById('btn-do-restore').disabled = false;
+      document.getElementById('btn-do-restore').style.opacity = '1';
+    } catch(err) {
+      alert('❌ Could not read file. Make sure it is a valid BUBU backup .json file.');
+      pendingRestoreData = null;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function confirmRestore() {
+  if (!pendingRestoreData) return;
+  const d = pendingRestoreData.data;
+  const totalM = d.members ? d.members.length : 0;
+  let totalC = 0;
+  if (d.members) d.members.forEach(m => { totalC += (m.totalContributed || 0); });
+  const totalI = d.members ? d.members.reduce((s,m) => s + (m.interestEarned || 0), 0) : 0;
+  const version = pendingRestoreData._version || 'legacy';
+  document.getElementById('confirm-restore-msg').innerHTML =
+    `Replace current data with backup<br><br>` +
+    `<strong>v${version} — ${pendingRestoreData._savedAtReadable || 'Unknown date'}</strong><br><br>` +
+    `👥 ${totalM} members<br>` +
+    `💰 ${fmt(totalC)} contributions<br>` +
+    `🎁 ${fmt(totalI)} in interest shares<br>` +
+    `📜 ${d.history ? d.history.length : 0} history entries`;
+  closeModal('modal-backup');
+  document.getElementById('modal-confirm-restore').style.display = 'flex';
+}
+
+function doRestoreFinal() {
+  if (!pendingRestoreData || !pendingRestoreData.data) return;
+  const restored = pendingRestoreData.data;
+  const version = pendingRestoreData._version || 1;
+
+  db = {
+    interestRate: null,
+    members: [],
+    history: [],
+    totalLoaned: 0,
+    totalReleased: 0,
+    totalInterestCollected: 0,
+    knownNames: [],
+    orphanInterest: 0,
+    ...restored
+  };
+
+  if (typeof db.totalInterestCollected !== 'number') {
+    db.totalInterestCollected = db.totalInterestEarned || 0;
+  }
+  if (!db.knownNames) db.knownNames = [];
+
+  (db.members || []).forEach(m => {
+    if (typeof m.interestEarned !== 'number') m.interestEarned = 0;
+    if (typeof m.loanAccruedInterest !== 'number') m.loanAccruedInterest = 0;
+    if (!m.loanStartDate && m.loanBalance > 0) m.loanStartDate = Date.now();
+    if ((!m.loanAmount || m.loanAmount <= 0) && m.loanBalance > 0) m.loanAmount = m.loanBalance;
+    if (!m.entries) m.entries = [];
+    if (typeof m.paymentCount !== 'number') m.paymentCount = 0;
+    if (typeof m.totalLoanPaid !== 'number') m.totalLoanPaid = 0;
+    if (typeof m.totalContributed !== 'number') m.totalContributed = 0;
+  });
+
+  // Recalculate totalLoaned from actual balances
+  db.totalLoaned = 0;
+  (db.members || []).forEach(m => { db.totalLoaned += (m.loanBalance || 0); });
+
+  (db.members || []).forEach(m => rememberMemberName(m.name));
+
+  addHistory('🔄', 'Data Restored', `Backup from ${pendingRestoreData._savedAtReadable || 'unknown date'} (v${version}) was restored`);
+  saveDB();
+
+  memberSearchTerm = '';
+  const searchInput = document.getElementById('member-search');
+  if (searchInput) searchInput.value = '';
+
+  closeModal('modal-member-detail');
+  activeMemberId = null;
+
+  renderMembers();
+  updateOverview();
+
+  const totalM = db.members.length;
+  let totalC = 0;
+  db.members.forEach(m => { totalC += (m.totalContributed || 0); });
+  const totalI = db.members.reduce((s,m) => s + (m.interestEarned || 0), 0);
+
+  document.getElementById('restore-success-msg').innerHTML =
+    `Data restored successfully!<br><br>` +
+    `👥 <strong>${totalM} members</strong> loaded<br>` +
+    `💰 <strong>${fmt(totalC)}</strong> in contributions<br>` +
+    `🎁 <strong>${fmt(totalI)}</strong> in interest shares<br>` +
+    `📜 <strong>${db.history.length} history</strong> entries`;
+
+  document.getElementById('modal-restore-success').style.display = 'flex';
+  pendingRestoreData = null;
+}
+
+function closeRestoreSuccess() {
+  closeModal('modal-restore-success');
+}
+
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn');
+  if (btn) {
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 150);
+  }
+});
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      if (this.id !== 'modal-interest' && this.id !== 'modal-confirm-interest') {
+        this.style.display = 'none';
+      }
+    }
+  });
+});
+
+
+let toastTimer = null;
+function showInterestToast(lines) {
+  const toast = document.getElementById('interest-toast');
+  toast.innerHTML = lines.join('<br>');
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.classList.remove('show'); }, 4000);
+}
+
+
+const AUTO_REFRESH_MS = 20 * 1000;
+setInterval(() => {
+  if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
+    refreshMemberDetail();
+  }
+  renderMembers();
+}, AUTO_REFRESH_MS);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
+      refreshMemberDetail();
+    }
+    renderMembers();
+  }
+});
+window.addEventListener('focus', () => {
+  if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
+    refreshMemberDetail();
+  }
+  renderMembers();
+});
+
+
+let deferredPrompt = null;
+const BANNER_DISMISSED_KEY = 'bubu_install_dismissed';
+
+function isIos() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function isInStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function isBannerDismissed() { const ts = localStorage.getItem(BANNER_DISMISSED_KEY); if (!ts) return false; return (Date.now() - parseInt(ts)) < 3*24*60*60*1000; }
+function hideBannerAnimated(id) { const el = document.getElementById(id); if (!el || el.style.display === 'none') return; el.classList.add('hiding'); setTimeout(() => { el.style.display = 'none'; el.classList.remove('hiding'); }, 260); }
+function dismissInstallBanner() { localStorage.setItem(BANNER_DISMISSED_KEY, Date.now().toString()); hideBannerAnimated('install-banner'); }
+function dismissIosBanner() { localStorage.setItem(BANNER_DISMISSED_KEY, Date.now().toString()); hideBannerAnimated('ios-banner'); }
+async function triggerInstall() { if (!deferredPrompt) return; deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null; hideBannerAnimated('install-banner'); if (outcome === 'accepted') localStorage.setItem(BANNER_DISMISSED_KEY, Date.now().toString()); }
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; if (!isInStandaloneMode() && !isBannerDismissed()) setTimeout(() => { document.getElementById('install-banner').style.display = 'flex'; }, 2000); });
+window.addEventListener('appinstalled', () => { hideBannerAnimated('install-banner'); deferredPrompt = null; localStorage.setItem(BANNER_DISMISSED_KEY, Date.now().toString()); });
+function initIosBanner() { if (isIos() && !isInStandaloneMode() && !isBannerDismissed()) setTimeout(() => { document.getElementById('ios-banner').style.display = 'block'; }, 2000); }
+
+
+function init() {
+  loadDB();
+  renderMembers();
+  updateOverview();
+  setTimeout(() => {
+    if (db.interestRate === null) {
+      buildInterestOptions();
+      document.getElementById('modal-interest').style.display = 'flex';
+    }
+  }, 500);
+  initIosBanner();
+}
+
+init();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('BUBU SW registered:', reg.scope))
+        .catch(err => console.error('BUBU SW error:', err));
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "BUBU Savings Tracker",
+  "short_name": "BUBU",
+  "description": "Pinoy-BuBu — App para sa mga Pinoy na gustong mag-ipon nang sama-sama! I-track ang kontribusyon, utang, at interes ng bawat miyembro ng inyong grupo — simple, mabilis, at libre! 🪙",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#C4955A",
+  "theme_color": "#5BA3C9",
+  "lang": "en-PH",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    { "src": "icon-72.png",  "sizes": "72x72",   "type": "image/png" },
+    { "src": "icon-96.png",  "sizes": "96x96",   "type": "image/png" },
+    { "src": "icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
