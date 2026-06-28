@@ -789,12 +789,19 @@
   <section id="overview">
     <h2>📊 SYSTEM OVERVIEW</h2>
     <div class="overview-grid">
-      <div class="stat-card">
+
+<div class="stat-card" style="background:linear-gradient(135deg,#E8D5FF,#C9A8FF);grid-column:span 2;">
+        <div class="stat-label" style="color:#4A0080;">Handler Fee Earned</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+          <div class="stat-value" id="ov-handler-fee" style="color:#4A0080;">₱0</div>
+          <button class="btn btn-sm" style="background:#7B2FBE;color:white;border:2px solid black;box-shadow:2px 2px 0 black;font-family:'Press Start 2P',monospace;font-size:6px;padding:5px 8px;" onclick="claimHandlerFee()">💜 CLAIM</button>
+        </div>
+      </div>
+            <div class="stat-card">
         <div class="stat-label">Total Members</div>
         <div class="stat-value" id="ov-members">0</div>
       </div>
       <div class="stat-card highlight-green">
-
         <div class="stat-label">Cash On Hand</div>
         <div class="stat-value" id="ov-contributions">₱0</div>
       </div>
@@ -1282,6 +1289,8 @@
         Use responsibly. 🙏
         <br><br>
         <strong>Created By:</strong> KevinDGreat
+        <br><br>
+        <strong>Source Code</strong> <a href="https://github.com/pinoy-bubu/pinoy-bubu.github.io">Github</a>
       </div>
     </div>
     <div class="modal-footer">
@@ -1303,6 +1312,7 @@ let db = {
   totalReleased: 0,
   totalInterestCollected: 0,
   knownNames: [],
+  handlerFee: 0,
 };
 
 let activeMemberId = null;
@@ -1397,16 +1407,21 @@ function allocatePayment(member, paymentAmount, now) {
 function distributeInterest(amount) {
   if (!amount || amount <= 0) return [];
   const eligible = db.members.filter(m => (m.totalContributed || 0) > 0);
+
+  const totalSlots = eligible.length + 1;
   if (eligible.length === 0) {
-    db.orphanInterest = (db.orphanInterest || 0) + amount;
+
+    const handlerShare = amount / totalSlots;
+    db.handlerFee = (db.handlerFee || 0) + amount;
     return [];
   }
-  const perMember = amount / eligible.length;
+  const perSlot = amount / totalSlots;
   const shares = [];
   eligible.forEach(m => {
-    m.interestEarned = (m.interestEarned || 0) + perMember;
-    shares.push({ name: m.name, share: perMember });
+    m.interestEarned = (m.interestEarned || 0) + perSlot;
+    shares.push({ name: m.name, share: perSlot });
   });
+  db.handlerFee = (db.handlerFee || 0) + perSlot;
   return shares;
 }
 
@@ -1453,7 +1468,7 @@ function updateOverview() {
   // FIX 2: Cash On Hand = total contributions minus amount currently loaned out
   const cashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0));
   document.getElementById('ov-contributions').textContent = fmt(cashOnHand);
-
+  document.getElementById('ov-handler-fee').textContent = fmt(db.handlerFee || 0);
   document.getElementById('ov-interest').textContent = fmt(db.totalInterestCollected || 0);
   document.getElementById('ov-loaned').textContent = fmt(db.totalLoaned);
   document.getElementById('ov-rate').textContent = db.interestRate !== null ? db.interestRate + '%/mo' : '—%';
@@ -2148,7 +2163,17 @@ function openHistory() {
   }
   document.getElementById('modal-history').style.display = 'flex';
 }
-
+function claimHandlerFee() {
+  const amount = db.handlerFee || 0;
+  if (amount <= 0) { alert('No handler fee to claim yet!'); return; }
+  if (!confirm(`Claim handler fee of ${fmt(amount)}?\n\nThis will reset the handler fee balance to ₱0.`)) return;
+  db.totalInterestCollected = Math.max(0, (db.totalInterestCollected || 0) - amount);
+  db.handlerFee = 0;
+  addHistory('💜', 'Handler Fee Claimed', `Handler claimed ${fmt(amount)} in earned interest fees`);
+  saveDB();
+  updateOverview();
+  showInterestToast([`💜 Handler fee claimed!`, `${fmt(amount)} has been collected`]);
+}
 
 function showDisclaimer() {
   document.getElementById('modal-disclaimer').style.display = 'flex';
@@ -2270,6 +2295,7 @@ function doRestoreFinal() {
     totalInterestCollected: 0,
     knownNames: [],
     orphanInterest: 0,
+    handlerFee: 0,
     ...restored
   };
 
