@@ -463,9 +463,9 @@
     position: relative;
   }
   .loan-accrual-panel::before {
-    content: '⏰ MONTHLY INTEREST ACCRUING';
+    content: 'LOAN DETAILS';
     font-family: 'Press Start 2P', monospace;
-    font-size: 6px;
+    font-size: 10px;
     color: var(--orange);
     display: block;
     margin-bottom: 8px;
@@ -767,11 +767,498 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+
+  #settings-btn {
+    position: fixed;
+    bottom: 72px;
+    right: 150px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    padding: 4px 7px;
+    background: rgba(0,0,0,0.5);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    z-index: 99;
+    letter-spacing: 0.5px;
+  }
+  #settings-btn:hover { background: rgba(0,0,0,0.7); }
+
+  .toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--sky);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .toggle-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--black);
+    line-height: 1.5;
+  }
+  .toggle-sub {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--wood-darker);
+    margin-top: 3px;
+  }
+  .toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input { display: none; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border: 2px solid var(--black);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 2px;
+    top: 2px;
+    background: white;
+    border: 1px solid var(--black);
+    transition: transform 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-slider { background: var(--green); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(24px); }
+
+  .pro-settings-panel {
+    background: var(--cream);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .pay-freq-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .pay-freq-opt {
+    background: var(--sky);
+    border: 2px solid var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    line-height: 1.6;
+    transition: all 0.05s;
+  }
+  .pay-freq-opt:hover { background: var(--sky-dark); color: white; }
+  .pay-freq-opt.selected { background: var(--gold); }
+  .pay-freq-opt:active { transform: translate(2px,2px); box-shadow: 0 0 0 var(--black); }
+
+  .schedule-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .schedule-slot {
+    text-align: center;
+  }
+  .schedule-slot .form-label { font-size: 6px; }
+.schedule-slot select {
+    width: 100%;
+    padding: 8px 4px;
+    border: 2px solid var(--black);
+    background: var(--cream);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+    outline: none;
+    cursor: pointer;
+  }
+  .schedule-slot input[type="date"] {
+    width: 100%;
+    padding: 8px 6px;
+    border: 2px solid var(--black);
+    background: var(--cream);
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: var(--black);
+    box-shadow: 2px 2px 0 var(--black);
+    outline: none;
+    cursor: pointer;
+  }
+  .schedule-slot input[type="date"]:focus { background: var(--white); border-color: var(--sky-deeper); }
+  .schedule-slot .slot-readable {
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    color: var(--wood-darker);
+    margin-top: 3px;
+    min-height: 14px;
+  }
+
+  .pro-detail-panel {
+    background: linear-gradient(135deg, #E8D5FF, #C9A8FF);
+    border: 3px solid #7B2FBE;
+    box-shadow: 3px 3px 0 var(--black);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .pro-detail-panel::before {
+    content: '💜 PAYMENT DETAILS';
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: #4A0080;
+    display: block;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .pro-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .pro-detail-item {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid #7B2FBE;
+    padding: 6px 4px;
+    text-align: center;
+  }
+  .pro-detail-item .pl { font-family: 'Press Start 2P', monospace; font-size: 5px; color: #4A0080; margin-bottom: 3px; line-height: 1.4; }
+  .pro-detail-item .pv { font-family: 'VT323', monospace; font-size: 17px; color: var(--black); font-weight: bold; }
+  .pro-detail-item .pv.penalty { color: var(--red); }
+  .pro-sched-info {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    color: #4A0080;
+    text-align: center;
+    line-height: 1.5;
+  }
+  
+  #retro-notify-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.1s ease;
+  }
+  #retro-notify-box {
+    background: var(--wood-light);
+    border: 4px solid var(--black);
+    box-shadow: 6px 6px 0 var(--black);
+    width: 100%;
+    max-width: 380px;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(139,99,64,0.08) 18px,rgba(139,99,64,0.08) 19px);
+    position: relative;
+    animation: slideUp 0.15s ease;
+  }
+  #retro-notify-box::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.3);
+    pointer-events: none;
+  }
+  #retro-notify-header {
+    background: var(--wood-dark);
+    border-bottom: 3px solid var(--black);
+    padding: 11px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #retro-notify-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--gold-light);
+    text-shadow: 1px 1px 0 var(--black);
+  }
+  #retro-notify-body {
+    padding: 20px 18px 14px;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--black);
+    text-align: center;
+    line-height: 1.5;
+  }
+  #retro-notify-footer {
+    padding: 10px 16px 14px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    border-top: 2px solid var(--wood);
+  }
+
+  /* RETRO PASSWORD MODAL */
+  #retro-pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.1s ease;
+  }
+  #retro-pw-box {
+    background: var(--wood-light);
+    border: 4px solid var(--black);
+    box-shadow: 6px 6px 0 var(--black);
+    width: 100%;
+    max-width: 360px;
+    position: relative;
+    animation: slideUp 0.15s ease;
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(139,99,64,0.08) 18px,rgba(139,99,64,0.08) 19px);
+  }
+  #retro-pw-box::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.3);
+    pointer-events: none;
+  }
+  #retro-pw-header {
+    background: var(--wood-dark);
+    border-bottom: 3px solid var(--black);
+    padding: 11px 16px;
+  }
+  #retro-pw-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--gold-light);
+    text-shadow: 1px 1px 0 var(--black);
+  }
+  #retro-pw-body {
+    padding: 16px;
+  }
+  #retro-pw-msg {
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: var(--black);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    text-align: center;
+  }
+  #retro-pw-error {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: var(--red);
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 16px;
+  }
+  #retro-pw-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--black);
+    background: var(--cream);
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    outline: none;
+    text-align: center;
+    letter-spacing: 4px;
+  }
+  #retro-pw-input:focus { background: var(--white); border-color: var(--sky-deeper); }
+  #retro-pw-footer {
+    padding: 10px 16px 14px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    border-top: 2px solid var(--wood);
+  }
+  
+.member-paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 2px solid var(--black);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  background: #A8E6CF;
+  color: #1A5C38;
+  box-shadow: 2px 2px 0 var(--black);
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.member-delayed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 2px solid var(--black);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  background: #FFAAAA;
+  color: #7B0000;
+  box-shadow: 2px 2px 0 var(--black);
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.member-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 2px solid var(--black);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  background: #E0E0E0;
+  color: #555;
+  box-shadow: 2px 2px 0 var(--black);
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+#delayed-btn-wrap {
+  margin-bottom: 10px;
+}
+
+#btn-delayed-members {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #FFAAAA;
+  border: 3px solid var(--black);
+  box-shadow: 4px 4px 0 var(--black);
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #7B0000;
+  transition: all 0.05s;
+  position: relative;
+}
+#btn-delayed-members:hover { background: #FF8888; }
+#btn-delayed-members:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--black); }
+#btn-delayed-members.none { background: #A8E6CF; color: #1A5C38; border-color: var(--black); }
+
+#delayed-count-bubble {
+  background: #7B0000;
+  color: white;
+  border: 2px solid var(--black);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 4px 10px;
+  box-shadow: 2px 2px 0 var(--black);
+  min-width: 32px;
+  text-align: center;
+}
+#btn-delayed-members.none #delayed-count-bubble {
+  background: #1A5C38;
+}
+
+
+.delayed-member-row {
+  background: #FFF0F0;
+  border: 2px solid var(--black);
+  box-shadow: 3px 3px 0 var(--black);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.05s;
+}
+.delayed-member-row:hover { background: #FFD5D5; }
+.delayed-member-row:active { transform: translate(3px,3px); box-shadow: 0 0 0 var(--black); }
+
+.delayed-member-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--black);
+  margin-bottom: 5px;
+}
+
+.delayed-member-meta {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: #7B0000;
+  line-height: 1.4;
+}
+
+.delayed-cycles-badge {
+  background: #7B0000;
+  color: white;
+  border: 2px solid var(--black);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 4px 8px;
+  box-shadow: 2px 2px 0 var(--black);
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+
+.delayed-summary-bar {
+  background: #FFAAAA;
+  border: 2px solid var(--black);
+  box-shadow: 3px 3px 0 var(--black);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #7B0000;
+  line-height: 1.8;
+  text-align: center;
+}
+  
 </style>
 </head>
 <body>
 
 <div id="interest-toast"></div>
+
+<div id="retro-notify-overlay" style="display:none;">
+  <div id="retro-notify-box">
+    <div id="retro-notify-header">
+      <span id="retro-notify-icon" style="font-size:18px;"></span>
+      <span id="retro-notify-title"></span>
+    </div>
+    <div id="retro-notify-body" id="retro-notify-msg"></div>
+    <div id="retro-notify-footer" id="retro-notify-btns"></div>
+  </div>
+</div>
+
+<div id="retro-pw-overlay" style="display:none;">
+  <div id="retro-pw-box">
+    <div id="retro-pw-header">
+      <div id="retro-pw-title">🔐 PRO MODE PASSWORD</div>
+    </div>
+    <div id="retro-pw-body">
+      <div id="retro-pw-msg"></div>
+      <div id="retro-pw-error"></div>
+      <input id="retro-pw-input" type="password" placeholder="••••••••" maxlength="30"
+        onkeydown="if(event.key==='Enter') retropwConfirm()">
+    </div>
+    <div id="retro-pw-footer">
+      <button class="btn btn-red btn-sm" onclick="retropwCancel()">✖ CANCEL</button>
+      <button class="btn btn-gold" onclick="retropwConfirm()">✅ CONFIRM</button>
+    </div>
+  </div>
+</div>
 
 <header id="header">
   <div id="header-logo">
@@ -789,6 +1276,11 @@
   <section id="overview">
     <h2>📊 SYSTEM OVERVIEW</h2>
     <div class="overview-grid">
+
+<div class="stat-card" style="background:linear-gradient(135deg,#D4EDFF,#A8D4FF);grid-column:span 2;border:2px solid var(--sky-deeper);">
+        <div class="stat-label" style="color:var(--sky-deeper);">📅 Next Payment Schedule</div>
+        <div class="stat-value" id="ov-next-schedule" style="color:var(--sky-deeper);font-size:16px;">—</div>
+      </div>
 
 <div class="stat-card" style="background:linear-gradient(135deg,#E8D5FF,#C9A8FF);grid-column:span 2;">
         <div class="stat-label" style="color:#4A0080;">Handler Fee Earned</div>
@@ -818,7 +1310,7 @@
         <div class="stat-value" id="ov-rate">—%</div>
       </div>
       <div class="stat-card highlight-orange">
-        <div class="stat-label">Accrued (Unpaid)</div>
+        <div class="stat-label">Collectible Interest</div>
         <div class="stat-value" id="ov-accrued">₱0</div>
       </div>
     </div>
@@ -826,6 +1318,14 @@
 
   <section id="members-section">
     <h2>👥 MEMBERS</h2>
+
+    <div id="delayed-btn-wrap" style="display:none;">
+      <button id="btn-delayed-members" onclick="openDelayedModal()">
+        <span>⚠️ DELAYED / UNPAID MEMBERS</span>
+        <span id="delayed-count-bubble">0</span>
+      </button>
+    </div>
+
     <div id="member-search-wrap">
       <input type="text" id="member-search" placeholder="Search members..." oninput="onMemberSearchInput()">
       <span id="member-search-icon">🔍</span>
@@ -845,6 +1345,7 @@
 </div>
 
 <button id="disclaimer-btn" onclick="showDisclaimer()">ℹ DISCLAIMER</button>
+<button id="settings-btn" onclick="openSettings()">⚙ SETTINGS</button>
 
 <div id="install-banner" style="display:none;">
   <div id="install-banner-icon">📲</div>
@@ -953,9 +1454,12 @@
 
 <div class="modal-overlay member-detail-modal" id="modal-member-detail" style="display:none;">
   <div class="modal" style="max-width:500px;">
-    <div class="modal-header">
-      <span class="modal-title" id="detail-name">MEMBER</span>
-      <button class="btn btn-red btn-sm" onclick="closeModal('modal-member-detail')">✖</button>
+<div class="modal-header" style="align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+      <span class="modal-title" id="detail-name" style="color:#D4AAFF;text-shadow:2px 2px 0 var(--black);">MEMBER</span>
+        <span style="font-family:'Press Start 2P',monospace;font-size:14px;color:var(--gold-light);text-shadow:2px 2px 0 var(--black);letter-spacing:2px;white-space:nowrap;">LEDGER CARD</span>
+      </div>
+      <button class="btn btn-red btn-sm" style="flex-shrink:0;" onclick="closeModal('modal-member-detail')">✖</button>
     </div>
     <div class="modal-body">
       <div class="detail-info-grid">
@@ -963,32 +1467,46 @@
           <div class="lbl">Total Contributed</div>
           <div class="val" id="d-contributed">₱0</div>
         </div>
-        <div class="detail-card accent-green">
-          <div class="lbl">Total Paid (Loan)</div>
-          <div class="val" id="d-paid">₱0</div>
-        </div>
-        <div class="detail-card accent-red">
-          <div class="lbl">Original Loan</div>
-          <div class="val" id="d-loan-original">₱0</div>
-        </div>
-        <div class="detail-card accent-red">
-          <div class="lbl">Principal Balance</div>
-          <div class="val" id="d-loan-balance">₱0</div>
-        </div>
-        <div class="detail-card">
-          <div class="lbl">No. of Payments</div>
-          <div class="val" id="d-payments">0</div>
-        </div>
         <div class="detail-card">
           <div class="lbl">Joined Date</div>
           <div class="val" id="d-joined" style="font-size:13px;"></div>
+        </div>
+
+      </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="detail-card" style="background:#FFF0A0;border:2px solid var(--black);box-shadow:2px 2px 0 var(--black);">
+          <div class="lbl" style="color:var(--wood-darker);">🎁 Interest Share<br><span style="font-size:5px;font-weight:normal;">(from payments collected)</span></div>
+          <div class="val" id="d-interest-share" style="color:var(--wood-darker);">₱0</div>
+        </div>
+        <div class="detail-card" style="background:linear-gradient(135deg,#A8E6CF,#80D4B0);border:3px solid var(--black);box-shadow:3px 3px 0 var(--black);">
+          <div class="lbl" style="color:var(--wood-darker);">💵 TOTAL RECEIVABLE<br><span style="font-size:5px;font-weight:normal;">(contribution + interest share)</span></div>
+          <div class="val" id="d-total-receivable" style="color:var(--black);font-size:20px;font-weight:bold;">₱0</div>
         </div>
       </div>
 
       <div id="loan-accrual-panel-wrap" style="display:none;">
         <div class="loan-accrual-panel">
           <div class="accrual-grid">
+          <div class="detail-card accent-red">
+          <div class="lbl">Principal Balance</div>
+          <div class="val" id="d-loan-balance">₱0</div>
+        </div>
+                    <div class="detail-card accent-red">
+          <div class="lbl">Original Loan</div>
+          <div class="val" id="d-loan-original">₱0</div>
+        </div>
+
+         <div class="detail-card accent-green">
+          <div class="lbl">Total Paid (Loan)</div>
+          <div class="val" id="d-paid">₱0</div>
+        </div>
+                <div class="detail-card">
+          <div class="lbl">No. of Payments</div>
+          <div class="val" id="d-payments">0</div>
+        </div>
             <div class="accrual-item">
+              
               <div class="al">Monthly Rate</div>
               <div class="av" id="d-monthly-rate">0%</div>
             </div>
@@ -1009,15 +1527,34 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-        <div class="detail-card" style="background:#FFF0A0;border:2px solid var(--black);box-shadow:2px 2px 0 var(--black);">
-          <div class="lbl" style="color:var(--wood-darker);">🎁 Interest Share<br><span style="font-size:5px;font-weight:normal;">(from payments collected)</span></div>
-          <div class="val" id="d-interest-share" style="color:var(--wood-darker);">₱0</div>
+
+
+      <div id="pro-member-panel" class="pro-detail-panel" style="display:none;">
+        <div class="pro-detail-grid">
+          <div class="pro-detail-item">
+            <div class="pl">Amortization</div>
+            <div class="pv" id="d-pro-amort">₱0</div>
+          </div>
+          <div class="pro-detail-item">
+            <div class="pl">Penalty </div>
+            <div class="pv penalty" id="d-pro-penalty-days">0</div>
+          </div>
+          <div class="pro-detail-item">
+            <div class="pl">Total Penalty</div>
+            <div class="pv penalty" id="d-pro-penalty-amt">₱0</div>
+          </div>
         </div>
-        <div class="detail-card" style="background:linear-gradient(135deg,#A8E6CF,#80D4B0);border:3px solid var(--black);box-shadow:3px 3px 0 var(--black);">
-          <div class="lbl" style="color:var(--wood-darker);">💵 TOTAL RECEIVABLE<br><span style="font-size:5px;font-weight:normal;">(contribution + interest share)</span></div>
-          <div class="val" id="d-total-receivable" style="color:var(--black);font-size:20px;font-weight:bold;">₱0</div>
+        <div class="pro-detail-grid">
+          <div class="pro-detail-item" style="grid-column:span 1;">
+            <div class="pl">Next Due Date</div>
+            <div class="pv" id="d-pro-next-due" style="font-size:13px;">—</div>
+          </div>
+          <div class="pro-detail-item" style="grid-column:span 2;">
+            <div class="pl">Amount Required to Pay</div>
+            <div class="pv penalty" id="d-pro-total-due">₱0</div>
+          </div>
         </div>
+        <div class="pro-sched-info" id="d-pro-sched-info"></div>
       </div>
 
       <div class="alert-info" id="d-interest-note" style="display:none;"></div>
@@ -1269,6 +1806,62 @@
 </div>
 
 
+<div class="modal-overlay" id="modal-settings" style="display:none;">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title">⚙️ SETTINGS</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-settings')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="toggle-wrap">
+        <div>
+          <div class="toggle-label">💜 PRO MODE</div>
+          <div class="toggle-sub">Amortization schedule + penalties</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-pro-mode" onchange="onProModeToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div id="pro-settings-panel" class="pro-settings-panel" style="display:none;">
+        <div class="section-title">📅 PAYMENT FREQUENCY</div>
+        <div class="pay-freq-grid">
+          <div class="pay-freq-opt" id="freq-1" onclick="selectFreq(1)">ONCE<br>A MONTH</div>
+          <div class="pay-freq-opt" id="freq-2" onclick="selectFreq(2)">TWICE<br>A MONTH</div>
+          <div class="pay-freq-opt" id="freq-3" onclick="selectFreq(3)">THREE<br>TIMES</div>
+        </div>
+
+        <<div class="section-title">📆 PAYMENT SCHEDULE</div>
+        <div class="schedule-slots" id="schedule-slots" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+        </div>
+        <div style="font-family:'VT323',monospace;font-size:13px;color:var(--wood-dark);margin:-4px 0 12px;text-align:center;">
+          📌 Pick the exact date for each payment. After it passes, it auto-advances by 1 month.
+        </div>
+
+        <div class="section-title">💰 AMORTIZATION AMOUNT</div>
+        <div class="form-group">
+          <input class="form-input" id="input-amort-amount" type="number" min="1" placeholder="e.g. 200">
+        </div>
+
+        <div class="section-title">⚠️ PENALTY PER DAY (LATE)</div>
+        <div class="form-group">
+          <input class="form-input" id="input-penalty-per-day" type="number" min="0" placeholder="e.g. 5">
+        </div>
+
+        <button class="btn btn-green" style="width:100%;" onclick="saveProSettings()">💾 SAVE PRO SETTINGS</button>
+      </div>
+
+      <div class="alert-info" style="margin-top:8px;">
+        Pro Mode adds a payment schedule and late penalties to the app. When OFF, the app runs in simple mode — just track contributions and loans with no due dates or penalties. When ON, members must pay on schedule and late payments will incur penalties that get distributed as interest.
+      </div>
+    </div>
+<div class="modal-footer">
+      <button class="btn btn-sky btn-sm" onclick="closeSettings()">CLOSE</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-disclaimer" style="display:none;">
   <div class="modal">
     <div class="modal-header">
@@ -1299,8 +1892,102 @@
   </div>
 </div>
 
+
+<div class="modal-overlay" id="modal-delayed" style="display:none;">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <span class="modal-title">⚠️ DELAYED MEMBERS</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-delayed')">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="delayed-summary-bar" id="delayed-summary-bar"></div>
+      <div id="delayed-members-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sky btn-sm" onclick="closeModal('modal-delayed')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
 <script>
 
+
+function retroAlert(title, msg, icon, onOk) {
+  icon = icon || '📢';
+  const ov = document.getElementById('retro-notify-overlay');
+  document.getElementById('retro-notify-icon').textContent = icon;
+  document.getElementById('retro-notify-title').textContent = title;
+  document.getElementById('retro-notify-body').innerHTML = msg;
+  const footer = document.getElementById('retro-notify-footer');
+  footer.innerHTML = '';
+  const okBtn = document.createElement('button');
+  okBtn.className = 'btn btn-gold';
+  okBtn.textContent = '✅ OK';
+  okBtn.onclick = () => {
+    ov.style.display = 'none';
+    if (onOk) onOk();
+  };
+  footer.appendChild(okBtn);
+  ov.style.display = 'flex';
+}
+
+function retroConfirm(title, msg, icon, onYes, onNo, yesLabel, noLabel) {
+  icon = icon || '❓';
+  yesLabel = yesLabel || '✅ YES';
+  noLabel = noLabel || '❌ NO';
+  const ov = document.getElementById('retro-notify-overlay');
+  document.getElementById('retro-notify-icon').textContent = icon;
+  document.getElementById('retro-notify-title').textContent = title;
+  document.getElementById('retro-notify-body').innerHTML = msg;
+  const footer = document.getElementById('retro-notify-footer');
+  footer.innerHTML = '';
+
+  const noBtn = document.createElement('button');
+  noBtn.className = 'btn btn-red btn-sm';
+  noBtn.textContent = noLabel;
+  noBtn.onclick = () => { ov.style.display = 'none'; if (onNo) onNo(); };
+
+  const yesBtn = document.createElement('button');
+  yesBtn.className = 'btn btn-green';
+  yesBtn.textContent = yesLabel;
+  yesBtn.onclick = () => { ov.style.display = 'none'; if (onYes) onYes(); };
+
+  footer.appendChild(noBtn);
+  footer.appendChild(yesBtn);
+  ov.style.display = 'flex';
+}
+
+
+let _pwCallback = null;
+let _pwCancelCallback = null;
+
+function showPasswordModal(msg, onConfirm, onCancel) {
+  document.getElementById('retro-pw-msg').innerHTML = msg;
+  document.getElementById('retro-pw-error').textContent = '';
+  document.getElementById('retro-pw-input').value = '';
+  _pwCallback = onConfirm;
+  _pwCancelCallback = onCancel;
+  document.getElementById('retro-pw-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('retro-pw-input').focus(), 100);
+}
+
+function retropwConfirm() {
+  const val = document.getElementById('retro-pw-input').value;
+  if (!val || val.trim().length < 4) {
+    document.getElementById('retro-pw-error').textContent = 'Min 4 characters required!';
+    return;
+  }
+  document.getElementById('retro-pw-overlay').style.display = 'none';
+  if (_pwCallback) _pwCallback(val.trim());
+}
+
+function retropwCancel() {
+  document.getElementById('retro-pw-overlay').style.display = 'none';
+  document.getElementById('retro-pw-input').value = '';
+  if (_pwCancelCallback) _pwCancelCallback();
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const BACKUP_VERSION = 4;
 const MS_PER_MONTH = 30 * 24 * 60 * 60 * 1000;
 
@@ -1313,6 +2000,15 @@ let db = {
   totalInterestCollected: 0,
   knownNames: [],
   handlerFee: 0,
+  proMode: false,
+  proPassword: null,
+  proSettings: {
+    frequency: 1,
+    scheduleDates: [],
+    scheduleHistory: [],   // NEW: permanent record of every due date that has ever occurred
+    amortAmount: 0,
+    penaltyPerDay: 0,
+  },
 };
 
 let activeMemberId = null;
@@ -1339,10 +2035,59 @@ function loadDB() {
   }
   if (!db.knownNames) db.knownNames = [];
   if (typeof db.totalInterestCollected !== 'number') db.totalInterestCollected = db.totalInterestEarned || 0;
+  if (typeof db.proMode !== 'boolean') db.proMode = false;
+  if (!db.proSettings) db.proSettings = { frequency: 1, scheduleDates: [todayISO()], amortAmount: 0, penaltyPerDay: 0 };
+  if (typeof db.proPassword === 'undefined') db.proPassword = null;
+  migrateScheduleDates();
   migrateMembers();
   (db.members || []).forEach(m => rememberMemberName(m.name));
 }
 
+
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function isoToDate(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function dateToISO(date) {
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+
+
+function addOneMonthISO(iso) {
+  const d = isoToDate(iso);
+  const targetMonth = d.getMonth() + 1;
+  const targetYear = d.getFullYear() + Math.floor(targetMonth / 12);
+  const normMonth = targetMonth % 12;
+  const daysInTarget = new Date(targetYear, normMonth + 1, 0).getDate();
+  const day = Math.min(d.getDate(), daysInTarget);
+  return dateToISO(new Date(targetYear, normMonth, day));
+}
+
+function migrateScheduleDates() {
+  const ps = db.proSettings;
+  if (!ps) return;
+  if (!Array.isArray(ps.scheduleHistory)) ps.scheduleHistory = [];
+
+  if (Array.isArray(ps.scheduleDates) && ps.scheduleDates.length > 0) return;
+
+  const now = new Date();
+  const legacyDays = Array.isArray(ps.scheduleDays) && ps.scheduleDays.length > 0 ? ps.scheduleDays : [now.getDate()];
+  const daysInThisMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  ps.scheduleDates = legacyDays.map(dayNum => {
+    const day = Math.min(dayNum, daysInThisMonth);
+    return dateToISO(new Date(now.getFullYear(), now.getMonth(), day));
+  }).sort();
+
+  delete ps.scheduleDays;
+}
 
 function migrateMembers() {
   (db.members || []).forEach(m => {
@@ -1356,6 +2101,14 @@ function migrateMembers() {
     if ((!m.loanAmount || m.loanAmount <= 0) && m.loanBalance > 0) {
       m.loanAmount = m.loanBalance;
     }
+
+    if (typeof m.proPenaltyDays !== 'number') m.proPenaltyDays = 0;
+    if (typeof m.proLastPaidTs !== 'number') m.proLastPaidTs = 0;
+
+    if (!Array.isArray(m.proUnpaidCycles)) m.proUnpaidCycles = [];
+    if (typeof m.proPenaltyBalance !== 'number') m.proPenaltyBalance = 0;
+    if (typeof m.proLastSyncTs !== 'number') m.proLastSyncTs = 0;
+    if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
   });
 }
 
@@ -1465,8 +2218,9 @@ function updateOverview() {
   let totalContrib = 0;
   db.members.forEach(m => { totalContrib += (m.totalContributed || 0); });
 
-  // FIX 2: Cash On Hand = total contributions minus amount currently loaned out
-  const cashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0));
+  const totalInterestShares = db.members.reduce((s, m) => s + (m.interestEarned || 0), 0);
+  const handlerFee = db.handlerFee || 0;
+  const cashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0) + totalInterestShares + handlerFee);
   document.getElementById('ov-contributions').textContent = fmt(cashOnHand);
   document.getElementById('ov-handler-fee').textContent = fmt(db.handlerFee || 0);
   document.getElementById('ov-interest').textContent = fmt(db.totalInterestCollected || 0);
@@ -1482,6 +2236,24 @@ function updateOverview() {
     }
   });
   document.getElementById('ov-accrued').textContent = fmt(totalAccrued);
+
+  const nextSchedEl = document.getElementById('ov-next-schedule');
+  if (db.proMode && db.proSettings && db.proSettings.scheduleDates && db.proSettings.scheduleDates.length > 0) {
+    const nextDate = getNextGlobalScheduleDate(now);
+    if (nextDate) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const isPast = nextDate < new Date(now);
+      nextSchedEl.textContent = `${days[nextDate.getDay()]}, ${months[nextDate.getMonth()]} ${nextDate.getDate()}, ${nextDate.getFullYear()}`;
+      nextSchedEl.style.color = isPast ? 'var(--red)' : 'var(--sky-deeper)';
+    } else {
+      nextSchedEl.textContent = '—';
+      nextSchedEl.style.color = 'var(--sky-deeper)';
+    }
+  } else {
+    nextSchedEl.textContent = db.proMode ? 'NO SCHEDULE SET' : 'PRO MODE OFF';
+    nextSchedEl.style.color = 'var(--wood-dark)';
+  }
 }
 
 
@@ -1511,6 +2283,7 @@ function renderMembers() {
       innerHTML: 'NO MEMBERS YET<br><br>TAP "ADD MEMBER"<br>TO GET STARTED'
     }));
     updateOverview();
+    updateDelayedButton(now); 
     return;
   }
 
@@ -1540,13 +2313,23 @@ function renderMembers() {
         accruedBadge = `<span class="member-badge accrued">+${fmt(accrual.accrued)} int</span>`;
       }
     }
+
+
+    const payStatus = getMemberPayStatus(m, now);
+    const statusBadge = db.proMode && db.proSettings && db.proSettings.amortAmount > 0
+      ? getPayStatusBadgeHTML(payStatus)
+      : '';
+
     div.innerHTML = `
-      <div>
-        <div class="member-name">${m.name}</div>
-        <div class="member-meta">Contributed: ${fmt(m.totalContributed)}
-          ${hasLoan ? `<span class="member-badge loan">LOAN: ${fmt(m.loanBalance)}</span>` : ''}
-          ${accruedBadge}
-          ${interestShare > 0 ? `<span class="member-badge" style="background:#FFF0A0;">🎁 ${fmt(interestShare)}</span>` : ''}
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:nowrap;">
+        ${statusBadge}
+        <div style="min-width:0;">
+          <div class="member-name">${m.name}</div>
+          <div class="member-meta">Contributed: ${fmt(m.totalContributed)}
+            ${hasLoan ? `<span class="member-badge loan">LOAN: ${fmt(m.loanBalance)}</span>` : ''}
+            ${accruedBadge}
+            ${interestShare > 0 ? `<span class="member-badge" style="background:#FFF0A0;">🎁 ${fmt(interestShare)}</span>` : ''}
+          </div>
         </div>
       </div>
     `;
@@ -1554,6 +2337,7 @@ function renderMembers() {
     list.appendChild(div);
   });
   updateOverview();
+  updateDelayedButton(now); 
 }
 
 
@@ -1588,7 +2372,7 @@ function selectInterestOpt(rate, el) {
 }
 
 function confirmInterestSetup() {
-  if (!pendingInterestRate) { alert('Please select a monthly interest rate!'); return; }
+  if (!pendingInterestRate) { retroAlert('⚙️ SELECT RATE', 'Please select a monthly<br>interest rate first!', '⚠️'); return; }
   document.getElementById('confirm-interest-msg').innerHTML =
     `Set MONTHLY interest rate to<br><br><strong>${pendingInterestRate}% per month</strong><br><br>Simple interest: same fixed amount each 30-day period. No compounding.<br><br>This CANNOT be changed later.`;
   document.getElementById('modal-interest').style.display = 'none';
@@ -1695,8 +2479,8 @@ function rememberMemberName(name) {
 
 function confirmAddMember() {
   const name = document.getElementById('input-member-name').value.trim();
-  if (!name) { alert('Please enter a member name!'); return; }
-  if (db.members.find(m => m.name === name)) { alert('A member with this name already exists!'); return; }
+  if (!name) { retroAlert('⚠️ MISSING NAME', 'Please enter a member name!', '⚠️'); return; }
+  if (db.members.find(m => m.name === name)) { retroAlert('⚠️ DUPLICATE', 'A member with this name<br>already exists!', '⚠️'); return; }
   document.getElementById('confirm-name-display').textContent = name;
   closeModal('modal-add-member');
   document.getElementById('modal-confirm-add').style.display = 'flex';
@@ -1704,10 +2488,11 @@ function confirmAddMember() {
 
 function addMemberFinal() {
   const name = document.getElementById('input-member-name').value.trim();
+  const now = Date.now();
   const member = {
     id: genId(),
     name,
-    joinedAt: Date.now(),
+    joinedAt: now,
     totalContributed: 0,
     loanBalance: 0,
     loanAmount: 0,
@@ -1717,6 +2502,10 @@ function addMemberFinal() {
     paymentCount: 0,
     interestEarned: 0,
     entries: [],
+    proUnpaidCycles: [],
+    proPenaltyBalance: 0,
+    proLastSyncTs: db.proMode ? now : 0,
+    proAdvanceCredits: [],
   };
   db.members.push(member);
   rememberMemberName(name);
@@ -1744,7 +2533,6 @@ function refreshMemberDetail() {
   document.getElementById('d-loan-original').textContent = fmt(m.loanAmount);
   document.getElementById('d-loan-balance').textContent = fmt(m.loanBalance);
 
-  // FIX 1: Show totalLoanPaid only while a loan is active; clear to ₱0 when no loan
   document.getElementById('d-paid').textContent = m.loanBalance > 0 ? fmt(m.totalLoanPaid) : fmt(0);
 
   document.getElementById('d-payments').textContent = m.paymentCount;
@@ -1754,7 +2542,27 @@ function refreshMemberDetail() {
   document.getElementById('d-interest-share').textContent = fmt(interestShare);
   document.getElementById('d-total-receivable').textContent = fmt(totalReceivable);
 
-  // Interest note
+
+  const proPanel = document.getElementById('pro-member-panel');
+  if (db.proMode && db.proSettings && db.proSettings.amortAmount > 0) {
+    proPanel.style.display = 'block';
+    const info = getProDueInfo(m, now);
+    if (info) {
+      const cycleLabel = info.cycleCount > 1 ? `${fmt(info.unpaidAmortTotal)} (${info.cycleCount} cycles)` : fmt(info.unpaidAmortTotal);
+      document.getElementById('d-pro-amort').textContent = cycleLabel;
+      document.getElementById('d-pro-penalty-days').textContent = info.cycleCount > 0 ? `${fmt(info.currentRate)}/day` : '—';
+      document.getElementById('d-pro-penalty-amt').textContent = fmt(info.penaltyAmt);
+      document.getElementById('d-pro-next-due').textContent = info.nextDue ? formatShortDate(info.nextDue) : '—';
+      document.getElementById('d-pro-total-due').textContent = fmt(info.totalRequired);
+      const ps = db.proSettings;
+      const readableSched = ps.scheduleDates.map(iso => { const d = isoToDate(iso); return formatShortDate(d) + ' \'' + String(d.getFullYear()).slice(2); }).join(', ');
+      document.getElementById('d-pro-sched-info').textContent =
+        `Schedule: ${readableSched} · ${ps.frequency}x/month · Base penalty: ${fmt(ps.penaltyPerDay)}/day per unpaid cycle`;
+    }
+  } else {
+    proPanel.style.display = 'none';
+  }
+
   const noteEl = document.getElementById('d-interest-note');
   if (interestShare > 0) {
     noteEl.style.display = 'block';
@@ -1766,7 +2574,6 @@ function refreshMemberDetail() {
     noteEl.style.display = 'none';
   }
 
-  // Monthly accrual panel
   const accrualWrap = document.getElementById('loan-accrual-panel-wrap');
   if (m.loanBalance > 0 && db.interestRate) {
     accrualWrap.style.display = 'block';
@@ -1789,7 +2596,6 @@ function refreshMemberDetail() {
     accrualWrap.style.display = 'none';
   }
 
-  // Loan status
   const loanStatus = document.getElementById('d-loan-status');
   const btnLoan = document.getElementById('btn-loan');
   const btnLoanPay = document.getElementById('btn-loan-pay');
@@ -1816,7 +2622,6 @@ function refreshMemberDetail() {
     btnLoanPay.style.opacity = '0.5';
   }
 
-  // Entries
   const entriesEl = document.getElementById('d-entries');
   entriesEl.innerHTML = '';
   if (m.entries.length === 0) {
@@ -1861,11 +2666,20 @@ function openContribution() {
 
 function confirmContribution() {
   const val = parseFloat(document.getElementById('input-contribution').value);
-  if (!val || val <= 0) { alert('Enter a valid amount!'); return; }
+  if (!val || val <= 0) { retroAlert('⚠️ INVALID', 'Enter a valid amount!', '⚠️'); return; }
   pendingContribAmount = val;
   const m = getMember(activeMemberId);
+  let extraInfo = '';
+  if (db.proMode && db.proSettings && db.proSettings.amortAmount > 0) {
+    const info = getProDueInfo(m, Date.now());
+    if (info) {
+      extraInfo = `<br><span style="font-size:14px;color:var(--wood-darker);">Required: ${fmt(info.totalRequired)}` +
+        (info.cycleCount > 1 ? `<br>📋 Covers ${info.cycleCount} unpaid cycles (${fmt(info.unpaidAmortTotal)})` : '') +
+        (info.penaltyAmt > 0 ? `<br>⚠ Includes ${fmt(info.penaltyAmt)} penalty` : '') + `</span>`;
+    }
+  }
   document.getElementById('confirm-contrib-msg').innerHTML =
-    `Add contribution of<br><br>${fmt(val)}<br><br>to <strong>${m.name}</strong>?`;
+    `Add contribution of<br><br>${fmt(val)}<br><br>to <strong>${m.name}</strong>?${extraInfo}`;
   closeModal('modal-contribution');
   document.getElementById('modal-confirm-contribution').style.display = 'flex';
 }
@@ -1873,10 +2687,51 @@ function confirmContribution() {
 function addContributionFinal() {
   const m = getMember(activeMemberId);
   if (!m) return;
+  const now = Date.now();
+
+  let penaltyDistributed = 0;
+  let cyclesClearedNote = '';
+
+  if (db.proMode && db.proSettings && db.proSettings.amortAmount > 0) {
+    const info = getProDueInfo(m, now);
+    if (info) {
+      const required = info.totalRequired;
+      if (Math.abs(pendingContribAmount - required) > 0.01) {
+        retroAlert('❌ WRONG AMOUNT', `Required: <strong>${fmt(required)}</strong><br>Unpaid Amortization: ${fmt(info.unpaidAmortTotal)}${info.cycleCount > 1 ? ` (${info.cycleCount} cycles)` : ''}<br>Penalty: ${fmt(info.penaltyAmt)}<br><br>Please input the exact amount.`, '⚠️');
+        return;
+      }
+
+      const result = applyProPayment(m, pendingContribAmount, now);
+      penaltyDistributed = result.penaltyPaid;
+
+      if (penaltyDistributed > 0) {
+        const shares = distributeInterest(penaltyDistributed);
+        db.totalInterestCollected = (db.totalInterestCollected || 0) + penaltyDistributed;
+        const eligible = shares.length;
+        addHistory('⚠️', 'Penalty Collected', `${m.name} paid ${fmt(penaltyDistributed)} penalty — split among ${eligible + 1} (incl. handler)`);
+        showInterestToast([
+          `⚠️ Penalty of ${fmt(penaltyDistributed)} collected!`,
+          `Distributed as interest`
+        ]);
+      }
+
+      if (result.cyclesCleared > 0) {
+        cyclesClearedNote = ` — cleared ${result.cyclesCleared} cycle${result.cyclesCleared > 1 ? 's' : ''} of amortization`;
+      } else if (result.advancePaid > 0) {
+        cyclesClearedNote = ` — paid in advance for the upcoming due date`;
+      }
+    }
+  }
+
   m.totalContributed += pendingContribAmount;
-  pushMemberEntry(m, { type: 'contribution', amount: pendingContribAmount, ts: Date.now() });
+  pushMemberEntry(m, {
+    type: 'contribution',
+    amount: pendingContribAmount,
+    ts: now,
+    penalty: penaltyDistributed
+  });
   m.paymentCount += 1;
-  addHistory('💰', 'Contribution Added', `${m.name} contributed ${fmt(pendingContribAmount)}`);
+  addHistory('💰', 'Contribution Added', `${m.name} contributed ${fmt(pendingContribAmount)}${penaltyDistributed > 0 ? ` (incl. ${fmt(penaltyDistributed)} penalty)` : ''}${cyclesClearedNote}`);
   saveDB();
   closeModal('modal-confirm-contribution');
   refreshMemberDetail();
@@ -1886,12 +2741,27 @@ function addContributionFinal() {
 
 function openLoan() {
   const m = getMember(activeMemberId);
-  if (m.loanBalance > 0) { alert('This member already has an active loan!'); return; }
-  if (db.interestRate === null) { alert('Interest rate not set!'); return; }
+  if (m.loanBalance > 0) { retroAlert('🏦 LOAN EXISTS', 'This member already has<br>an active loan!', '⚠️'); return; }
+  if (db.interestRate === null) { retroAlert('⚙️ NO RATE SET', 'Interest rate not set!', '⚠️'); return; }
+
+
+  let totalContrib = 0;
+  db.members.forEach(mb => { totalContrib += (mb.totalContributed || 0); });
+  const totalInterestShares = db.members.reduce((s, mb) => s + (mb.interestEarned || 0), 0);
+  const handlerFee = db.handlerFee || 0;
+  const currentCashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0) + totalInterestShares + handlerFee);
+
+  if (currentCashOnHand <= 0) {
+    retroAlert('🏦 NO FUNDS', 'No cash on hand available<br>to create a loan!', '⚠️');
+    return;
+  }
+
   document.getElementById('loan-info-banner').innerHTML =
     `Monthly interest: <strong>${db.interestRate}%</strong> (simple, no compounding)<br>
-    Month 1 starts day 0 — month 2 at day 30 — and so on`;
+    Month 1 starts day 0 — month 2 at day 30 — and so on<br>
+    <span style="color:var(--red);font-family:'Press Start 2P',monospace;font-size:6px;">MAX LOAN: ${fmt(currentCashOnHand)} (cash on hand)</span>`;
   document.getElementById('input-loan').value = '';
+  document.getElementById('input-loan').max = currentCashOnHand;
   document.getElementById('loan-preview').style.display = 'none';
   document.getElementById('modal-loan').style.display = 'flex';
   setTimeout(() => document.getElementById('input-loan').focus(), 100);
@@ -1910,7 +2780,21 @@ function updateLoanPreview() {
 function confirmLoan() {
   const m = getMember(activeMemberId);
   const val = parseFloat(document.getElementById('input-loan').value);
-  if (!val || val <= 0) { alert('Enter a valid loan amount!'); return; }
+  if (!val || val <= 0) { retroAlert('⚠️ INVALID', 'Enter a valid loan amount!', '⚠️'); return; }
+
+  let totalContrib = 0;
+  db.members.forEach(mb => { totalContrib += (mb.totalContributed || 0); });
+  const totalInterestShares = db.members.reduce((s, mb) => s + (mb.interestEarned || 0), 0);
+  const handlerFee = db.handlerFee || 0;
+  const currentCashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0) + totalInterestShares + handlerFee);
+
+  if (val > currentCashOnHand) {
+    retroAlert('💸 EXCEEDS CASH ON HAND',
+      `Loan amount <strong>${fmt(val)}</strong> exceeds<br>available cash on hand of<br><strong>${fmt(currentCashOnHand)}</strong>.<br><br>Please enter a lower amount.`,
+      '⚠️');
+    return;
+  }
+
   pendingLoanAmount = val;
   const monthlyInterest = val * db.interestRate / 100;
   document.getElementById('confirm-loan-msg').innerHTML =
@@ -1956,7 +2840,7 @@ function addLoanFinal() {
 
 function openLoanPayment() {
   const m = getMember(activeMemberId);
-  if (m.loanBalance <= 0) { alert('No active loan to pay!'); return; }
+  if (m.loanBalance <= 0) { retroAlert('💳 NO LOAN', 'No active loan to pay!', 'ℹ️'); return; }
 
   const now = Date.now();
   const accrual = computeAccruedInterest(m, now);
@@ -1989,14 +2873,14 @@ function openLoanPayment() {
 function confirmLoanPayment() {
   const m = getMember(activeMemberId);
   const val = parseFloat(document.getElementById('input-loan-payment').value);
-  if (!val || val <= 0) { alert('Enter a valid payment amount!'); return; }
+  if (!val || val <= 0) { retroAlert('⚠️ INVALID', 'Enter a valid payment amount!', '⚠️'); return; }
 
   const now = Date.now();
   const accrual = computeAccruedInterest(m, now);
   const maxPayable = accrual.totalDue;
 
   if (val > maxPayable) {
-    alert(`Payment exceeds total amount due! Max: ${fmt(maxPayable)}`);
+    retroAlert('⚠️ EXCEEDS DUE', `Payment exceeds total amount due!<br>Max: <strong>${fmt(maxPayable)}</strong>`, '⚠️');
     return;
   }
 
@@ -2077,9 +2961,9 @@ function addLoanPaymentFinal() {
 
 function confirmRelease() {
   const m = getMember(activeMemberId);
-  if (m.loanBalance > 0) { alert('Cannot release while there is an active loan!'); return; }
+  if (m.loanBalance > 0) { retroAlert('📤 BLOCKED', 'Cannot release while there<br>is an active loan!', '⚠️'); return; }
   if (m.totalContributed <= 0 && (m.interestEarned || 0) <= 0) {
-    alert('No contributions or interest to release!'); return;
+    retroAlert('📤 NOTHING TO RELEASE', 'No contributions or interest<br>to release!', 'ℹ️'); return;
   }
   const interestShare = m.interestEarned || 0;
   const totalReceivable = m.totalContributed + interestShare;
@@ -2140,6 +3024,389 @@ function deleteMemberFinal() {
   renderMembers();
 }
 
+function closeSettings() {
+  const currentToggle = document.getElementById('toggle-pro-mode').checked;
+  if (currentToggle !== db.proMode) {
+    if (!currentToggle) {
+
+      db.proMode = false;
+      addHistory('⚙️', 'Pro Mode Disabled', 'Pro Mode turned off');
+      saveDB();
+      renderMembers();
+      if (activeMemberId) refreshMemberDetail();
+    }
+
+  }
+  closeModal('modal-settings');
+}
+
+function openSettings() {
+  document.getElementById('toggle-pro-mode').checked = db.proMode || false;
+  document.getElementById('pro-settings-panel').style.display = db.proMode ? 'block' : 'none';
+  const ps = db.proSettings || {};
+  document.getElementById('input-amort-amount').value = ps.amortAmount || '';
+  document.getElementById('input-penalty-per-day').value = ps.penaltyPerDay || '';
+  renderFreqButtons(ps.frequency || 1);
+  renderScheduleSlots(ps.frequency || 1, ps.scheduleDates || [todayISO()]);
+  document.getElementById('modal-settings').style.display = 'flex';
+}
+
+function onProModeToggle() {
+  const on = document.getElementById('toggle-pro-mode').checked;
+  const toggle = document.getElementById('toggle-pro-mode');
+
+  if (on) {
+    toggle.checked = false;
+    document.getElementById('pro-settings-panel').style.display = 'none';
+
+    if (!db.proPassword) {
+      showPasswordModal(
+        '🔐 Create a password to protect<br>Pro Mode settings.',
+        (pw1) => {
+          showPasswordModal(
+            '🔐 Confirm your password.',
+            (pw2) => {
+              if (pw1 !== pw2) {
+                retroAlert('❌ MISMATCH', 'Passwords do not match!<br>Please try again.', '⚠️', openSettings);
+                return;
+              }
+              db.proPassword = pw1;
+              saveDB();
+              toggle.checked = true;
+              document.getElementById('pro-settings-panel').style.display = 'block';
+              retroAlert('🔐 PASSWORD SET', 'Password created!<br>Pro Mode is now unlocked.', '✅');
+            },
+            openSettings
+          );
+        },
+        openSettings
+      );
+    } else {
+
+      showPasswordModal(
+        '🔐 Enter your Pro Mode password<br>to enable.',
+        (pw) => {
+          if (pw !== db.proPassword) {
+            retroAlert('❌ WRONG PASSWORD', 'Incorrect password!<br>Pro Mode remains OFF.', '⚠️');
+            return;
+          }
+          toggle.checked = true;
+          document.getElementById('pro-settings-panel').style.display = 'block';
+        },
+        () => {}
+      );
+    }
+  } else {
+
+    toggle.checked = true; 
+    if (db.proPassword) {
+      showPasswordModal(
+        '🔐 Enter your Pro Mode password<br>to disable.',
+        (pw) => {
+          if (pw !== db.proPassword) {
+            retroAlert('❌ WRONG PASSWORD', 'Incorrect password!<br>Pro Mode remains ON.', '⚠️');
+            return;
+          }
+          toggle.checked = false;
+          document.getElementById('pro-settings-panel').style.display = 'none';
+        },
+        () => {}
+      );
+    } else {
+      toggle.checked = false;
+      document.getElementById('pro-settings-panel').style.display = 'none';
+    }
+  }
+}
+
+function renderFreqButtons(freq) {
+  [1,2,3].forEach(n => {
+    const el = document.getElementById('freq-' + n);
+    if (el) el.classList.toggle('selected', n === freq);
+  });
+}
+
+function selectFreq(n) {
+  renderFreqButtons(n);
+  const existing = db.proSettings ? (db.proSettings.scheduleDates || [todayISO()]) : [todayISO()];
+  renderScheduleSlots(n, existing);
+}
+
+function getSelectedFreq() {
+  for (let n of [1,2,3]) {
+    const el = document.getElementById('freq-' + n);
+    if (el && el.classList.contains('selected')) return n;
+  }
+  return 1;
+}
+
+function renderScheduleSlots(freq, currentDates) {
+  const container = document.getElementById('schedule-slots');
+  container.innerHTML = '';
+  const labels = ['1st Payment Date', '2nd Payment Date', '3rd Payment Date'];
+  const todayMin = todayISO();
+  for (let i = 0; i < freq; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'schedule-slot';
+    const lbl = document.createElement('div');
+    lbl.className = 'form-label';
+    lbl.textContent = labels[i];
+
+    const input = document.createElement('input');
+    input.type = 'date';
+    input.id = 'sched-date-' + i;
+    input.value = currentDates[i] || todayMin;
+
+    const readable = document.createElement('div');
+    readable.className = 'slot-readable';
+    readable.id = 'sched-date-readable-' + i;
+
+    const updateReadable = () => {
+      const d = isoToDate(input.value);
+      readable.textContent = d ? formatShortDate(d) + ', ' + d.getFullYear() : '';
+    };
+    input.oninput = updateReadable;
+    updateReadable();
+
+    wrap.appendChild(lbl);
+    wrap.appendChild(input);
+    wrap.appendChild(readable);
+    container.appendChild(wrap);
+  }
+}
+
+function saveProSettings() {
+  const proOn = document.getElementById('toggle-pro-mode').checked;
+  const freq = getSelectedFreq();
+  const dates = [];
+  for (let i = 0; i < freq; i++) {
+    const input = document.getElementById('sched-date-' + i);
+    if (input && input.value) dates.push(input.value);
+  }
+  dates.sort();
+  const amort = parseFloat(document.getElementById('input-amort-amount').value) || 0;
+  const penalty = parseFloat(document.getElementById('input-penalty-per-day').value) || 0;
+
+  if (proOn && amort <= 0) { retroAlert('⚠️ MISSING', 'Please enter a valid<br>amortization amount!', '⚠️'); return; }
+  if (proOn && freq > 0 && dates.length < freq) { retroAlert('⚠️ MISSING', 'Please set all payment<br>dates before saving!', '⚠️'); return; }
+
+  const wasProMode = db.proMode;
+  db.proMode = proOn;
+  db.proSettings = { frequency: freq, scheduleDates: dates, amortAmount: amort, penaltyPerDay: penalty };
+
+  if (proOn && !wasProMode) {
+    const now = Date.now();
+    db.members.forEach(m => {
+      m.proLastPaidTs = now;       
+      m.proPenaltyDays = 0;        
+      m.proUnpaidCycles = [];
+      m.proPenaltyBalance = 0;
+      m.proLastSyncTs = now;
+      m.proAdvanceCredits = [];
+    });
+  }
+
+  const readableDates = dates.map(iso => { const d = isoToDate(iso); return formatShortDate(d) + ', ' + d.getFullYear(); }).join(' / ');
+  addHistory('⚙️', proOn ? 'Pro Mode Enabled' : 'Pro Mode Disabled',
+    proOn ? `Amort: ${fmt(amort)}/payment, Penalty: ${fmt(penalty)}/day, ${freq}x/month on ${readableDates}` : 'Pro Mode turned off');
+  saveDB();
+  closeModal('modal-settings');
+  renderMembers();
+  if (activeMemberId) refreshMemberDetail();
+  retroAlert(proOn ? '✅ PRO MODE ON' : '✅ PRO MODE OFF',
+    proOn ? 'Pro Mode settings saved!<br>Amortization schedule is active.' : 'Pro Mode disabled.<br>App returns to default mode.',
+    proOn ? '💜' : 'ℹ️');
+}
+
+
+function advancePassedScheduleDates(now) {
+  const ps = db.proSettings;
+  if (!ps || !Array.isArray(ps.scheduleDates) || ps.scheduleDates.length === 0) return false;
+  if (!Array.isArray(ps.scheduleHistory)) ps.scheduleHistory = [];
+
+  const todayMidnight = new Date(now);
+  todayMidnight.setHours(0,0,0,0);
+
+  let changed = false;
+  ps.scheduleDates = ps.scheduleDates.map(iso => {
+    let current = iso;
+    let guard = 0;
+    while (isoToDate(current) < todayMidnight && guard < 60) {
+
+      if (!ps.scheduleHistory.includes(current)) {
+        ps.scheduleHistory.push(current);
+      }
+      current = addOneMonthISO(current);
+      changed = true;
+      guard++;
+    }
+    return current;
+  }).sort();
+
+  if (changed) {
+    ps.scheduleHistory.sort();
+    saveDB();
+  }
+  return changed;
+}
+
+
+function getCrossedDueDates(afterTs, now) {
+  const ps = db.proSettings;
+  if (!ps || !Array.isArray(ps.scheduleHistory)) return [];
+  return ps.scheduleHistory
+    .map(isoToDate)
+    .filter(d => d.getTime() > afterTs && d.getTime() <= now)
+    .sort((a, b) => a - b);
+}
+
+
+function syncMemberCycles(member, now) {
+  const ps = db.proSettings;
+  if (!db.proMode || !ps || !ps.amortAmount) return;
+
+  if (!Array.isArray(member.proUnpaidCycles)) member.proUnpaidCycles = [];
+  if (typeof member.proPenaltyBalance !== 'number') member.proPenaltyBalance = 0;
+  if (!Array.isArray(member.proAdvanceCredits)) member.proAdvanceCredits = [];
+
+
+  if (!member.proLastSyncTs) {
+    member.proLastSyncTs = now;
+    return;
+  }
+
+  if (now <= member.proLastSyncTs) return; 
+
+  const crossed = getCrossedDueDates(member.proLastSyncTs, now);
+  let segmentStart = member.proLastSyncTs;
+
+  crossed.forEach(dueDate => {
+    const segmentEnd = dueDate.getTime();
+    const days = (segmentEnd - segmentStart) / MS_PER_DAY;
+    if (days > 0 && member.proUnpaidCycles.length > 0) {
+      member.proPenaltyBalance += ps.penaltyPerDay * member.proUnpaidCycles.length * days;
+    }
+
+
+    if (member.proAdvanceCredits.length > 0) {
+      member.proAdvanceCredits.shift();
+    } else {
+      member.proUnpaidCycles.push({ dueDate: dateToISO(dueDate), amount: ps.amortAmount });
+    }
+    segmentStart = segmentEnd;
+  });
+
+  const finalDays = (now - segmentStart) / MS_PER_DAY;
+  if (finalDays > 0 && member.proUnpaidCycles.length > 0) {
+    member.proPenaltyBalance += ps.penaltyPerDay * member.proUnpaidCycles.length * finalDays;
+  }
+
+  member.proLastSyncTs = now;
+}
+
+
+function applyProPayment(member, paymentAmount, now) {
+  let remaining = paymentAmount;
+  let penaltyPaid = 0;
+  let amortPaid = 0;
+  let cyclesCleared = 0;
+  let advancePaid = 0;
+
+  if (remaining > 0 && member.proPenaltyBalance > 0) {
+    const pay = Math.min(remaining, member.proPenaltyBalance);
+    member.proPenaltyBalance -= pay;
+    penaltyPaid += pay;
+    remaining -= pay;
+  }
+
+  while (remaining > 0 && member.proUnpaidCycles.length > 0) {
+    const cycle = member.proUnpaidCycles[0];
+    if (remaining >= cycle.amount - 0.0001) {
+      amortPaid += cycle.amount;
+      remaining -= cycle.amount;
+      member.proUnpaidCycles.shift();
+      cyclesCleared++;
+    } else {
+      cycle.amount -= remaining;
+      amortPaid += remaining;
+      remaining = 0;
+    }
+  }
+
+
+  if (remaining > 0) {
+    if (!Array.isArray(member.proAdvanceCredits)) member.proAdvanceCredits = [];
+    member.proAdvanceCredits.push({ amount: remaining, paidAt: now || Date.now() });
+    advancePaid = remaining;
+    remaining = 0;
+  }
+
+  return { penaltyPaid, amortPaid, cyclesCleared, advancePaid, leftover: remaining };
+}
+
+function getProDueInfo(member, now) {
+  if (!db.proMode || !db.proSettings) return null;
+  const ps = db.proSettings;
+  if (!Array.isArray(ps.scheduleDates) || ps.scheduleDates.length === 0 || !ps.amortAmount) return null;
+
+  advancePassedScheduleDates(now);
+  syncMemberCycles(member, now);
+
+  const sortedDates = [...ps.scheduleDates].map(isoToDate).sort((a,b) => a - b);
+  const nextDue = sortedDates.find(d => d.getTime() > now) || sortedDates[0] || null;
+
+  const unpaidCycles = member.proUnpaidCycles || [];
+  const overdueAmortTotal = unpaidCycles.reduce((s, c) => s + c.amount, 0);
+  const penaltyAmt = member.proPenaltyBalance || 0;
+  const currentRate = (ps.penaltyPerDay || 0) * unpaidCycles.length;
+
+
+  const hasOverdue = unpaidCycles.length > 0;
+  const displayAmortTotal = hasOverdue ? overdueAmortTotal : ps.amortAmount;
+  const cycleCountForDisplay = hasOverdue ? unpaidCycles.length : 1;
+
+  return {
+    nextDue,
+    unpaidCycles,
+    cycleCount: cycleCountForDisplay,
+    hasOverdue,
+    amortAmount: ps.amortAmount,
+    unpaidAmortTotal: displayAmortTotal,
+    penaltyAmt,
+    currentRate,
+    totalRequired: displayAmortTotal + penaltyAmt,
+  };
+}
+
+
+function getNextGlobalScheduleDate(now) {
+  if (!db.proSettings || !Array.isArray(db.proSettings.scheduleDates) || db.proSettings.scheduleDates.length === 0) return null;
+  advancePassedScheduleDates(now);
+  const sorted = [...db.proSettings.scheduleDates].map(isoToDate).sort((a,b) => a - b);
+  return sorted[0] || null;
+}
+
+function formatShortDate(date) {
+  if (!date) return '—';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[date.getMonth()]} ${date.getDate()}`;
+}
+
+function accrueProPenalties() {
+  if (!db.proMode || !db.proSettings) return;
+  const ps = db.proSettings;
+  if (!ps.amortAmount || !ps.penaltyPerDay || ps.penaltyPerDay <= 0) return;
+
+  const now = Date.now();
+  advancePassedScheduleDates(now);
+
+  db.members.forEach(m => {
+    if ((m.totalContributed || 0) <= 0 && (!m.proUnpaidCycles || m.proUnpaidCycles.length === 0)) return;
+    syncMemberCycles(m, now);
+  });
+
+  saveDB();
+}
 
 function openHistory() {
   const list = document.getElementById('history-list');
@@ -2165,14 +3432,17 @@ function openHistory() {
 }
 function claimHandlerFee() {
   const amount = db.handlerFee || 0;
-  if (amount <= 0) { alert('No handler fee to claim yet!'); return; }
-  if (!confirm(`Claim handler fee of ${fmt(amount)}?\n\nThis will reset the handler fee balance to ₱0.`)) return;
-  db.totalInterestCollected = Math.max(0, (db.totalInterestCollected || 0) - amount);
-  db.handlerFee = 0;
-  addHistory('💜', 'Handler Fee Claimed', `Handler claimed ${fmt(amount)} in earned interest fees`);
-  saveDB();
-  updateOverview();
-  showInterestToast([`💜 Handler fee claimed!`, `${fmt(amount)} has been collected`]);
+  if (amount <= 0) { retroAlert('💜 NO FEE', 'No handler fee to claim yet!', 'ℹ️'); return; }
+  retroConfirm('💜 CLAIM FEE', `Claim handler fee of<br><strong>${fmt(amount)}</strong>?<br><br>This will reset the handler<br>fee balance to ₱0.`, '💜',
+    () => {
+      db.totalInterestCollected = Math.max(0, (db.totalInterestCollected || 0) - amount);
+      db.handlerFee = 0;
+      addHistory('💜', 'Handler Fee Claimed', `Handler claimed ${fmt(amount)} in earned interest fees`);
+      saveDB();
+      updateOverview();
+      showInterestToast([`💜 Handler fee claimed!`, `${fmt(amount)} has been collected`]);
+    }
+  );
 }
 
 function showDisclaimer() {
@@ -2303,9 +3573,15 @@ function doRestoreFinal() {
     db.totalInterestCollected = db.totalInterestEarned || 0;
   }
   if (!db.knownNames) db.knownNames = [];
+  if (typeof db.proMode !== 'boolean') db.proMode = false;
+  if (!db.proSettings) db.proSettings = { frequency: 1, scheduleDates: [todayISO()], amortAmount: 0, penaltyPerDay: 0 };
+  migrateScheduleDates();
+  if (typeof db.proPassword === 'undefined') db.proPassword = null;
 
-  (db.members || []).forEach(m => {
+ (db.members || []).forEach(m => {
     if (typeof m.interestEarned !== 'number') m.interestEarned = 0;
+    if (typeof m.proPenaltyDays !== 'number') m.proPenaltyDays = 0;
+    if (typeof m.proLastPaidTs !== 'number') m.proLastPaidTs = 0;
     if (typeof m.loanAccruedInterest !== 'number') m.loanAccruedInterest = 0;
     if (!m.loanStartDate && m.loanBalance > 0) m.loanStartDate = Date.now();
     if ((!m.loanAmount || m.loanAmount <= 0) && m.loanBalance > 0) m.loanAmount = m.loanBalance;
@@ -2313,9 +3589,13 @@ function doRestoreFinal() {
     if (typeof m.paymentCount !== 'number') m.paymentCount = 0;
     if (typeof m.totalLoanPaid !== 'number') m.totalLoanPaid = 0;
     if (typeof m.totalContributed !== 'number') m.totalContributed = 0;
+    if (!Array.isArray(m.proUnpaidCycles)) m.proUnpaidCycles = [];
+    if (typeof m.proPenaltyBalance !== 'number') m.proPenaltyBalance = 0;
+    if (typeof m.proLastSyncTs !== 'number') m.proLastSyncTs = 0;
+    if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
   });
 
-  // Recalculate totalLoaned from actual balances
+
   db.totalLoaned = 0;
   (db.members || []).forEach(m => { db.totalLoaned += (m.loanBalance || 0); });
 
@@ -2390,6 +3670,7 @@ function showInterestToast(lines) {
 
 const AUTO_REFRESH_MS = 20 * 1000;
 setInterval(() => {
+  accrueProPenalties();
   if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
     refreshMemberDetail();
   }
@@ -2429,6 +3710,7 @@ function initIosBanner() { if (isIos() && !isInStandaloneMode() && !isBannerDism
 
 function init() {
   loadDB();
+  accrueProPenalties();
   renderMembers();
   updateOverview();
   setTimeout(() => {
@@ -2438,6 +3720,126 @@ function init() {
     }
   }, 500);
   initIosBanner();
+}
+
+
+function getMemberPayStatus(member, now) {
+  if (!db.proMode || !db.proSettings || !db.proSettings.amortAmount) return 'pending';
+
+
+  const unpaid = member.proUnpaidCycles || [];
+  const advance = member.proAdvanceCredits || [];
+
+  if (unpaid.length > 0) return 'delayed';
+  if (advance.length > 0) return 'paid';
+  if ((member.totalContributed || 0) === 0) return 'pending';
+
+  return 'paid';
+}
+
+function getPayStatusBadgeHTML(status) {
+  if (status === 'paid')    return '<span class="member-paid-badge">✅ PAID</span>';
+  if (status === 'delayed') return '<span class="member-delayed-badge">⚠ LATE</span>';
+  return '<span class="member-pending-badge">— —</span>';
+}
+
+
+function updateDelayedButton(now) {
+  const wrap = document.getElementById('delayed-btn-wrap');
+  const btn  = document.getElementById('btn-delayed-members');
+  const bubble = document.getElementById('delayed-count-bubble');
+
+  if (!db.proMode || !db.proSettings || !db.proSettings.amortAmount || db.members.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'block';
+
+  const delayedCount = db.members.filter(m => getMemberPayStatus(m, now) === 'delayed').length;
+
+  bubble.textContent = delayedCount;
+
+  if (delayedCount === 0) {
+    btn.className = 'none';
+    btn.querySelector('span').textContent = '✅ ALL MEMBERS PAID';
+  } else {
+    btn.className = '';
+    btn.querySelector('span').textContent = '⚠️ DELAYED / UNPAID MEMBERS';
+  }
+}
+
+
+function openDelayedModal() {
+  const now = Date.now();
+  const listEl = document.getElementById('delayed-members-list');
+  const summaryEl = document.getElementById('delayed-summary-bar');
+  listEl.innerHTML = '';
+
+  const delayed = db.members.filter(m => getMemberPayStatus(m, now) === 'delayed');
+
+  if (delayed.length === 0) {
+    summaryEl.textContent = '✅ NO DELAYED MEMBERS RIGHT NOW!';
+    listEl.innerHTML = '<div style="text-align:center;padding:24px;font-family:\'Press Start 2P\',monospace;font-size:8px;color:var(--green);line-height:2;">ALL MEMBERS<br>ARE UP TO DATE! 🎉</div>';
+    document.getElementById('modal-delayed').style.display = 'flex';
+    return;
+  }
+
+  let totalUnpaidAmt = 0;
+  delayed.forEach(m => {
+    const cycles = m.proUnpaidCycles || [];
+    cycles.forEach(c => { totalUnpaidAmt += c.amount || 0; });
+    totalUnpaidAmt += m.proPenaltyBalance || 0;
+  });
+
+  summaryEl.innerHTML =
+    `${delayed.length} MEMBER${delayed.length > 1 ? 'S' : ''} DELAYED<br>` +
+    `TOTAL UNPAID: ${fmt(totalUnpaidAmt)}`;
+
+  delayed.forEach(m => {
+    const cycles = m.proUnpaidCycles || [];
+    const penalty = m.proPenaltyBalance || 0;
+    const unpaidAmort = cycles.reduce((s,c) => s + (c.amount || 0), 0);
+    const totalOwed = unpaidAmort + penalty;
+
+    const row = document.createElement('div');
+    row.className = 'delayed-member-row';
+    row.onclick = () => {
+      closeModal('modal-delayed');
+      openMemberDetail(m.id);
+    };
+
+
+    const dueDatesStr = cycles.length > 0
+      ? cycles.map(c => c.dueDate ? formatShortDateFromISO(c.dueDate) : '?').join(', ')
+      : '—';
+
+    row.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div class="delayed-member-name">${m.name}</div>
+        <div class="delayed-member-meta">
+          Unpaid cycles: ${cycles.length}<br>
+          Due dates missed: ${dueDatesStr}<br>
+          Amort owed: ${fmt(unpaidAmort)}
+          ${penalty > 0 ? ` + ${fmt(penalty)} penalty` : ''}
+        </div>
+      </div>
+      <div class="delayed-cycles-badge">
+        ${cycles.length} CYCLE${cycles.length !== 1 ? 'S' : ''}<br>
+        <span style="font-size:9px;font-family:'VT323',monospace;">${fmt(totalOwed)}</span>
+      </div>
+    `;
+    listEl.appendChild(row);
+  });
+
+  document.getElementById('modal-delayed').style.display = 'flex';
+}
+
+
+function formatShortDateFromISO(iso) {
+  if (!iso) return '?';
+  const d = isoToDate(iso);
+  return d ? formatShortDate(d) : iso;
 }
 
 init();
