@@ -3192,7 +3192,13 @@ function saveProSettings() {
 
   const wasProMode = db.proMode;
   db.proMode = proOn;
-  db.proSettings = { frequency: freq, scheduleDates: dates, amortAmount: amort, penaltyPerDay: penalty };
+  db.proSettings = { 
+  frequency: freq, 
+  scheduleDates: dates, 
+  amortAmount: amort, 
+  penaltyPerDay: penalty,
+  scheduleHistory: db.proSettings.scheduleHistory || []  
+};
 
   if (proOn && !wasProMode) {
     const now = Date.now();
@@ -3201,7 +3207,7 @@ function saveProSettings() {
       m.proPenaltyDays = 0;        
       m.proUnpaidCycles = [];
       m.proPenaltyBalance = 0;
-      m.proLastSyncTs = now;
+      m.proLastSyncTs = new Date(now).setHours(0, 0, 0, 0);
       m.proAdvanceCredits = [];
     });
   }
@@ -3256,7 +3262,7 @@ function getCrossedDueDates(afterTs, now) {
   if (!ps || !Array.isArray(ps.scheduleHistory)) return [];
   return ps.scheduleHistory
     .map(isoToDate)
-    .filter(d => d.getTime() > afterTs && d.getTime() <= now)
+.filter(d => d.getTime() >= afterTs && d.getTime() <= now)
     .sort((a, b) => a - b);
 }
 
