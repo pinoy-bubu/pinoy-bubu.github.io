@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bubu-cache-v8';
+const CACHE_NAME = 'bubu-cache-v10';
 const ASSETS = [
   './',
   './index.html',

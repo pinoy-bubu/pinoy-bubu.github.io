@@ -1274,7 +1274,7 @@
 
 <main id="main">
   <section id="overview">
-    <h2>📊 SYSTEM OVERVIEW</h2>
+    <h2>📊 BUBU OVERVIEW</h2>
     <div class="overview-grid">
 
 <div class="stat-card" style="background:linear-gradient(135deg,#D4EDFF,#A8D4FF);grid-column:span 2;border:2px solid var(--sky-deeper);">
@@ -1536,7 +1536,7 @@
             <div class="pv" id="d-pro-amort">₱0</div>
           </div>
           <div class="pro-detail-item">
-            <div class="pl">Penalty </div>
+            <div class="pl">Penalty Rate </div>
             <div class="pv penalty" id="d-pro-penalty-days">0</div>
           </div>
           <div class="pro-detail-item">
@@ -3271,9 +3271,8 @@ function syncMemberCycles(member, now) {
 
 
   if (!member.proLastSyncTs) {
-    member.proLastSyncTs = now;
-    return;
-  }
+  member.proLastSyncTs = now;
+}
 
   if (now <= member.proLastSyncTs) return; 
 
@@ -3401,9 +3400,8 @@ function accrueProPenalties() {
   advancePassedScheduleDates(now);
 
   db.members.forEach(m => {
-    if ((m.totalContributed || 0) <= 0 && (!m.proUnpaidCycles || m.proUnpaidCycles.length === 0)) return;
-    syncMemberCycles(m, now);
-  });
+  syncMemberCycles(m, now);
+});
 
   saveDB();
 }
