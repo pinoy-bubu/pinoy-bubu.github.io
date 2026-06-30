@@ -1972,18 +1972,17 @@ body.bubu-view-only #main {
         </label>
       </div>
 
-      <div id="cloud-sync-panel" style="display:none;">
-        <div class="alert-orange">
-          ⚠️ WARNING: Anyone with this code can VIEW all your members' data (names, contributions, loans, balances, interest). Only share this code with people you trust. You can regenerate the code anytime to revoke old access.
-        </div>
-        <div class="bubu-code-display" id="bubu-code-display">— NO CODE YET —</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-          <button class="btn btn-gold btn-sm" onclick="generateBubuCode()">🔁 GENERATE CODE</button>
-          <button class="btn btn-wood btn-sm" onclick="copyBubuCode()">📋 COPY CODE</button>
-        </div>
-        <button class="btn btn-green" style="width:100%;" onclick="syncNow()">☁️ SYNC NOW</button>
-        <div id="sync-status-line" style="font-family:'VT323',monospace;font-size:14px;color:var(--wood-darker);text-align:center;margin-top:8px;"></div>
-      </div>
+     <div id="cloud-sync-panel" style="display:none;">
+  <div class="alert-orange">...</div>
+  <div class="bubu-code-display" id="bubu-code-display">— NO CODE YET —</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+    <button class="btn btn-gold btn-sm" onclick="generateBubuCode()">🔁 GENERATE CODE</button>
+    <button class="btn btn-wood btn-sm" onclick="copyBubuCode()">📋 COPY CODE</button>
+  </div>
+</div>
+
+<button class="btn btn-green" style="width:100%;margin-top:8px;" onclick="syncNow()">☁️ SYNC NOW</button>
+<div id="sync-status-line" style="font-family:'VT323',monospace;font-size:14px;color:var(--wood-darker);text-align:center;margin-top:8px;"></div>
     </div>
 
     <div class="modal-footer">
