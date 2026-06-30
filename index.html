@@ -8,6 +8,33 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="BUBU">
 <title>Pinoy-BUBU</title>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_eFsPB-QjO_ZtsnvnHgBDCHqJUOOuqp8",
+    authDomain: "pinoy-bubu.firebaseapp.com",
+    projectId: "pinoy-bubu",
+    storageBucket: "pinoy-bubu.firebasestorage.app",
+    messagingSenderId: "906884243479",
+    appId: "1:906884243479:web:6cc43b8a57ec73c9f17c52"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const fbDb = getFirestore(fbApp);
+  const fbAuth = getAuth(fbApp);
+
+
+  window.__bubuFirebase = { fbDb, fbAuth, doc, getDoc, setDoc };
+
+  signInAnonymously(fbAuth).catch(err => console.error("Anon auth failed:", err));
+  onAuthStateChanged(fbAuth, user => {
+    window.__bubuAuthUid = user ? user.uid : null;
+    document.dispatchEvent(new CustomEvent('bubu-auth-ready'));
+  });
+</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-152.png">
 <style>
@@ -1224,10 +1251,80 @@
   line-height: 1.8;
   text-align: center;
 }
+
+#role-select-overlay, #member-code-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.role-card {
+  background: var(--wood-light); border: 4px solid var(--black);
+  box-shadow: 6px 6px 0 var(--black); max-width: 420px; width: 100%;
+  padding: 22px 18px; text-align: center;
+  background-image: repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(139,99,64,0.08) 18px,rgba(139,99,64,0.08) 19px);
+}
+.role-title {
+  font-family: 'Press Start 2P', monospace; font-size: 12px; color: var(--wood-darker);
+  margin-bottom: 18px; line-height: 1.8;
+}
+.role-btn {
+  display: block; width: 100%; padding: 16px 10px; margin-bottom: 14px;
+  font-family: 'Press Start 2P', monospace; font-size: 10px; line-height: 1.8;
+  border: 3px solid var(--black); cursor: pointer; box-shadow: 4px 4px 0 var(--black);
+}
+.role-btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 var(--black); }
+.role-btn.handler { background: var(--gold); color: var(--black); }
+.role-btn.member { background: var(--sky-dark); color: var(--white); }
+.role-sub { font-family: 'VT323', monospace; font-size: 14px; color: var(--wood-darker); margin-top: -8px; margin-bottom: 14px; }
+
+#view-only-banner {
+  background: #D4EDFF; border: 2px solid var(--sky-deeper); box-shadow: 3px 3px 0 var(--black);
+  padding: 8px 12px; margin-bottom: 14px; text-align: center;
+  font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--sky-deeper); line-height: 1.8;
+}
+#update-btn {
+  position: fixed; bottom: 72px; right: 12px;
+  font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 4px 7px;
+  background: rgba(0,0,0,0.5); color: var(--cream); border: 1px solid rgba(255,255,255,0.3);
+  cursor: pointer; z-index: 99; letter-spacing: 0.5px;
+}
+#update-btn:hover { background: rgba(0,0,0,0.7); }
+
+.bubu-code-display {
+  font-family: 'Press Start 2P', monospace; font-size: 20px; letter-spacing: 4px;
+  background: var(--cream); border: 2px solid var(--black); box-shadow: 3px 3px 0 var(--black);
+  padding: 14px; text-align: center; margin: 10px 0; color: var(--wood-darker);
+}
+body.bubu-view-only .detail-actions,
+body.bubu-view-only #modal-member-detail .modal-footer button:not(.btn-sky),
+body.bubu-view-only #disclaimer-btn ~ #settings-btn {
+  display: none !important;
+}
   
 </style>
 </head>
 <body>
+
+<div id="role-select-overlay" style="display:none;">
+  <div class="role-card">
+    <div class="role-title">🪙 HOW WILL YOU<br>USE THIS APP?</div>
+    <button class="role-btn handler" onclick="chooseRole('handler')">🧑‍💼 BUBU HANDLER</button>
+    <div class="role-sub">Full control — manage members, payments, loans, settings.</div>
+    <button class="role-btn member" onclick="chooseRole('member')">👁️ BUBU MEMBER</button>
+    <div class="role-sub">View-only access using a code from your handler.</div>
+  </div>
+</div>
+
+
+<div id="member-code-overlay" style="display:none;">
+  <div class="role-card">
+    <div class="role-title">👁️ ENTER YOUR<br>BUBU CODE</div>
+    <input class="form-input" id="input-bubu-code" type="text" maxlength="8" placeholder="e.g. AB12CD34"
+      style="text-align:center;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px;"
+      onkeydown="if(event.key==='Enter') submitBubuCode()">
+    <div id="bubu-code-error" style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--red);min-height:20px;margin-bottom:10px;"></div>
+    <button class="btn btn-sky btn-lg" style="width:100%;" onclick="submitBubuCode()">🔓 CONNECT</button>
+  </div>
+</div>
 
 <div id="interest-toast"></div>
 
@@ -1268,9 +1365,12 @@
     </div>
   </div>
   <div class="header-btns">
-    <button class="btn btn-sky btn-sm" onclick="openHistory()">📜 History</button>
+    <button class="btn btn-sky btn-sm" onclick="openHistory()">📜 RECORDS </button>
   </div>
 </header>
+<div id="view-only-banner-wrap" style="max-width:800px;margin:78px auto 0;padding:0 16px;display:none;">
+  <div id="view-only-banner"></div>
+</div>
 
 <main id="main">
   <section id="overview">
@@ -1346,7 +1446,7 @@
 
 <button id="disclaimer-btn" onclick="showDisclaimer()">ℹ DISCLAIMER</button>
 <button id="settings-btn" onclick="openSettings()">⚙ SETTINGS</button>
-
+<button id="update-btn" style="display:none;" onclick="memberUpdateNow()">🔄 UPDATE</button>
 <div id="install-banner" style="display:none;">
   <div id="install-banner-icon">📲</div>
   <div id="install-banner-text">
@@ -1572,7 +1672,7 @@
 
       <hr class="divider">
 
-      <div class="section-title">📋 PAYMENT ENTRIES</div>
+      <div class="section-title">📋  TRANSACTION RECORD</div>
       <div class="entry-list" id="d-entries">
         <div class="entry-item" style="justify-content:center;color:#999;font-size:13px;">No entries yet</div>
       </div>
@@ -1729,7 +1829,7 @@
 <div class="modal-overlay" id="modal-history" style="display:none;">
   <div class="modal" style="max-width:500px;">
     <div class="modal-header">
-      <span class="modal-title">📜 HISTORY LOG</span>
+      <span class="modal-title">📜 TRANSACTION LOG</span>
       <button class="btn btn-red btn-sm" onclick="closeModal('modal-history')">✖</button>
     </div>
     <div class="modal-body" id="history-list" style="padding:0;max-height:75vh;">
@@ -1852,11 +1952,37 @@
         <button class="btn btn-green" style="width:100%;" onclick="saveProSettings()">💾 SAVE PRO SETTINGS</button>
       </div>
 
-      <div class="alert-info" style="margin-top:8px;">
+     <div class="alert-info" style="margin-top:8px;">
         Pro Mode adds a payment schedule and late penalties to the app. When OFF, the app runs in simple mode — just track contributions and loans with no due dates or penalties. When ON, members must pay on schedule and late payments will incur penalties that get distributed as interest.
       </div>
+
+      <hr class="divider">
+      <div class="toggle-wrap">
+        <div>
+          <div class="toggle-label">🔗 MEMBER SHARING</div>
+          <div class="toggle-sub">Cloud Sync — let members view data</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-cloud-sync" onchange="onCloudSyncToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div id="cloud-sync-panel" style="display:none;">
+        <div class="alert-orange">
+          ⚠️ WARNING: Anyone with this code can VIEW all your members' data (names, contributions, loans, balances, interest). Only share this code with people you trust. You can regenerate the code anytime to revoke old access.
+        </div>
+        <div class="bubu-code-display" id="bubu-code-display">— NO CODE YET —</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+          <button class="btn btn-gold btn-sm" onclick="generateBubuCode()">🔁 GENERATE CODE</button>
+          <button class="btn btn-wood btn-sm" onclick="copyBubuCode()">📋 COPY CODE</button>
+        </div>
+        <button class="btn btn-green" style="width:100%;" onclick="syncNow()">☁️ SYNC NOW</button>
+        <div id="sync-status-line" style="font-family:'VT323',monospace;font-size:14px;color:var(--wood-darker);text-align:center;margin-top:8px;"></div>
+      </div>
     </div>
-<div class="modal-footer">
+
+    <div class="modal-footer">
       <button class="btn btn-sky btn-sm" onclick="closeSettings()">CLOSE</button>
     </div>
   </div>
@@ -2018,6 +2144,12 @@ let pendingLoanAmount = null;
 let pendingLoanPayAmount = null;
 let memberSearchTerm = '';
 let pendingRestoreData = null;
+let appRole = null;          
+let memberLastSync = null;   
+let memberBubuCode = null;   
+const ROLE_KEY = 'bubu_role_v1';
+const HANDLER_ID_KEY = 'bubu_handler_id';
+const MEMBER_CODE_KEY = 'bubu_member_code';
 
 
 function saveDB() {
@@ -2041,6 +2173,51 @@ function loadDB() {
   migrateScheduleDates();
   migrateMembers();
   (db.members || []).forEach(m => rememberMemberName(m.name));
+}
+
+function getStoredRole() { return localStorage.getItem(ROLE_KEY); }
+
+function chooseRole(role) {
+  localStorage.setItem(ROLE_KEY, role);
+  appRole = role;
+  document.getElementById('role-select-overlay').style.display = 'none';
+  if (role === 'member') {
+    document.getElementById('member-code-overlay').style.display = 'flex';
+  } else {
+    boot();
+  }
+}
+
+function getOrCreateHandlerId() {
+  let id = localStorage.getItem(HANDLER_ID_KEY);
+  if (!id) {
+    id = 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12);
+    localStorage.setItem(HANDLER_ID_KEY, id);
+  }
+  return id;
+}
+
+function genBubuCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
+  let out = '';
+  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function applyRoleUI() {
+  const isMember = appRole === 'member';
+  document.body.classList.toggle('bubu-view-only', isMember);
+  document.getElementById('settings-btn').style.display = isMember ? 'none' : 'inline-block';
+  document.getElementById('update-btn').style.display = isMember ? 'inline-block' : 'none';
+  document.querySelector('#bottom-bar').style.display = isMember ? 'none' : 'flex';
+  document.getElementById('view-only-banner-wrap').style.display = isMember ? 'block' : 'none';
+  if (isMember) updateViewOnlyBanner();
+}
+
+function updateViewOnlyBanner() {
+  const el = document.getElementById('view-only-banner');
+  const stamp = memberLastSync ? formatDate(memberLastSync) : '—';
+  el.innerHTML = `👁️ VIEW-ONLY MODE — Last updated: ${stamp}`;
 }
 
 
@@ -3712,20 +3889,49 @@ window.addEventListener('appinstalled', () => { hideBannerAnimated('install-bann
 function initIosBanner() { if (isIos() && !isInStandaloneMode() && !isBannerDismissed()) setTimeout(() => { document.getElementById('ios-banner').style.display = 'block'; }, 2000); }
 
 
-function init() {
-  loadDB();
-  accrueProPenalties();
-  renderMembers();
-  updateOverview();
-  setTimeout(() => {
-    if (db.interestRate === null) {
-      buildInterestOptions();
-      document.getElementById('modal-interest').style.display = 'flex';
+function boot() {
+  if (appRole === 'handler') {
+    loadDB();
+    accrueProPenalties();
+    renderMembers();
+    updateOverview();
+    setTimeout(() => {
+      if (db.interestRate === null) {
+        buildInterestOptions();
+        document.getElementById('modal-interest').style.display = 'flex';
+      }
+    }, 500);
+  } else if (appRole === 'member') {
+    const savedCode = localStorage.getItem(MEMBER_CODE_KEY);
+    if (savedCode) {
+      memberBubuCode = savedCode;
+      memberFetchByCode(savedCode, true);
+    } else {
+      document.getElementById('member-code-overlay').style.display = 'flex';
     }
-  }, 500);
+  }
+  applyRoleUI();
   initIosBanner();
 }
 
+function init() {
+  const stored = getStoredRole();
+  if (!stored) {
+    document.getElementById('role-select-overlay').style.display = 'flex';
+    return; // boot() runs after chooseRole()
+  }
+  appRole = stored;
+  if (appRole === 'member') {
+    const savedCode = localStorage.getItem(MEMBER_CODE_KEY);
+    if (!savedCode) {
+      document.getElementById('member-code-overlay').style.display = 'flex';
+      applyRoleUI();
+      initIosBanner();
+      return;
+    }
+  }
+  boot();
+}
 
 function getMemberPayStatus(member, now) {
   if (!db.proMode || !db.proSettings || !db.proSettings.amortAmount) return 'pending';
@@ -3844,6 +4050,158 @@ function formatShortDateFromISO(iso) {
   if (!iso) return '?';
   const d = isoToDate(iso);
   return d ? formatShortDate(d) : iso;
+}
+
+function waitForAuth() {
+  return new Promise(resolve => {
+    if (window.__bubuAuthUid !== undefined && window.__bubuAuthUid !== null) { resolve(); return; }
+    document.addEventListener('bubu-auth-ready', () => resolve(), { once: true });
+    setTimeout(resolve, 4000); 
+  });
+}
+
+function onCloudSyncToggle() {
+  const toggle = document.getElementById('toggle-cloud-sync');
+  const panel = document.getElementById('cloud-sync-panel');
+  const turningOn = toggle.checked;
+  toggle.checked = !turningOn; 
+
+  const proceed = () => {
+    toggle.checked = turningOn;
+    panel.style.display = turningOn ? 'block' : 'none';
+    db.cloudSyncEnabled = turningOn;
+    saveDB();
+    refreshBubuCodeDisplay();
+  };
+
+  if (!db.proPassword) {
+    showPasswordModal(
+      '🔐 Create a password to protect<br>Member Sharing settings.',
+      (pw1) => {
+        showPasswordModal('🔐 Confirm your password.', (pw2) => {
+          if (pw1 !== pw2) { retroAlert('❌ MISMATCH', 'Passwords do not match!', '⚠️'); return; }
+          db.proPassword = pw1; saveDB(); proceed();
+        }, () => {});
+      },
+      () => {}
+    );
+  } else {
+    showPasswordModal('🔐 Enter your Pro Mode password<br>to continue.', (pw) => {
+      if (pw !== db.proPassword) { retroAlert('❌ WRONG PASSWORD', 'Incorrect password!', '⚠️'); return; }
+      proceed();
+    }, () => {});
+  }
+}
+
+function refreshBubuCodeDisplay() {
+  document.getElementById('bubu-code-display').textContent = db.bubuCode ? db.bubuCode : '— NO CODE YET —';
+}
+
+function generateBubuCode() {
+  retroConfirm('🔁 GENERATE NEW CODE', 'This creates a new Bubu Code and<br>immediately revokes the old one.<br>Continue?', '⚠️', () => {
+    db.bubuCode = genBubuCode();
+    saveDB();
+    refreshBubuCodeDisplay();
+    retroAlert('✅ CODE GENERATED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>Remember to tap SYNC NOW so it goes live.`, '🔁');
+  });
+}
+
+function copyBubuCode() {
+  if (!db.bubuCode) { retroAlert('⚠️ NO CODE', 'Generate a code first!', '⚠️'); return; }
+  navigator.clipboard.writeText(db.bubuCode).then(() => {
+    showInterestToast(['📋 Code copied!']);
+  }).catch(() => {
+    retroAlert('⚠️ COPY FAILED', `Copy manually:<br><strong>${db.bubuCode}</strong>`, '⚠️');
+  });
+}
+
+async function syncNow() {
+  if (!db.bubuCode) { retroAlert('⚠️ NO CODE', 'Generate a Bubu Code before syncing!', '⚠️'); return; }
+  const statusLine = document.getElementById('sync-status-line');
+  statusLine.textContent = '⏳ Syncing...';
+  try {
+    await waitForAuth();
+    const uid = window.__bubuAuthUid;
+    if (!uid) throw new Error('No auth session — check your connection.');
+
+    const { fbDb, doc, setDoc } = window.__bubuFirebase;
+    const handlerId = getOrCreateHandlerId();
+
+    await setDoc(doc(fbDb, 'handlers', handlerId), {
+      ownerUid: uid,
+      data: JSON.parse(JSON.stringify(db)),
+      updatedAt: Date.now()
+    });
+    await setDoc(doc(fbDb, 'codes', db.bubuCode), {
+      ownerUid: uid,
+      handlerId: handlerId,
+      updatedAt: Date.now()
+    });
+
+    statusLine.textContent = '✅ Synced at ' + formatDate(Date.now());
+    retroAlert('☁️ SYNC COMPLETE', 'Your data is now available<br>to members with your Bubu Code.', '✅');
+  } catch (err) {
+    console.error('Sync failed:', err);
+    statusLine.textContent = '❌ Sync failed';
+    retroAlert('❌ SYNC FAILED', `Could not sync — check your internet connection and try again.<br><br><span style="font-size:12px;color:#888;">${err.message || err}</span>`, '⚠️');
+  }
+}
+
+async function submitBubuCode() {
+  const codeInput = document.getElementById('input-bubu-code');
+  const code = codeInput.value.trim().toUpperCase();
+  const errEl = document.getElementById('bubu-code-error');
+  errEl.textContent = '';
+  if (!code) { errEl.textContent = 'Please enter a code.'; return; }
+
+  document.getElementById('member-code-overlay').style.display = 'none';
+  await memberFetchByCode(code, false);
+}
+
+async function memberFetchByCode(code, silent) {
+  try {
+    await waitForAuth();
+    const { fbDb, doc, getDoc } = window.__bubuFirebase;
+
+    const codeSnap = await getDoc(doc(fbDb, 'codes', code));
+    if (!codeSnap.exists()) {
+      throw { isInvalidCode: true, message: 'This Bubu Code is invalid or was revoked.' };
+    }
+    const handlerId = codeSnap.data().handlerId;
+
+    const handlerSnap = await getDoc(doc(fbDb, 'handlers', handlerId));
+    if (!handlerSnap.exists()) {
+      throw { isInvalidCode: true, message: 'Handler data not found. The code may have been revoked.' };
+    }
+
+    db = handlerSnap.data().data;
+    memberBubuCode = code;
+    memberLastSync = Date.now();
+    localStorage.setItem(MEMBER_CODE_KEY, code);
+
+    renderMembers();
+    updateOverview();
+    applyRoleUI();
+    if (!silent) showInterestToast(['✅ Connected!', 'Data loaded successfully']);
+  } catch (err) {
+    console.error('Fetch by code failed:', err);
+    document.getElementById('member-code-overlay').style.display = 'flex';
+    const errEl = document.getElementById('bubu-code-error');
+    errEl.textContent = err.isInvalidCode
+      ? (err.message || 'Invalid code. Please re-enter.')
+      : 'Could not connect — check your internet connection.';
+  }
+}
+
+async function memberUpdateNow() {
+  if (!memberBubuCode) return;
+  const btn = document.getElementById('update-btn');
+  const originalText = btn.textContent;
+  btn.textContent = '⏳ ...';
+  await memberFetchByCode(memberBubuCode, false);
+  btn.textContent = originalText;
+  updateViewOnlyBanner();
+  showInterestToast(['🔄 Data updated', formatDate(Date.now())]);
 }
 
 init();
