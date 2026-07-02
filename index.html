@@ -4449,6 +4449,28 @@ function generateBubuCode() {
     saveDB();
     refreshBubuCodeDisplay();
 
+    let deleteFailed = false;
+    let stampFailed = false;
+
+    try {
+      await waitForAuth();
+      const uid = window.__bubuAuthUid;
+      const { fbDb, doc, setDoc } = window.__bubuFirebase;
+      const handlerId = getOrCreateHandlerId();
+
+      // Stamp the new active code onto the handler record immediately.
+      // This is the REAL lock — member logins get checked against this,
+      // regardless of whether the old code doc gets deleted below.
+      await setDoc(doc(fbDb, 'handlers', handlerId), {
+        ownerUid: uid,
+        activeCode: db.bubuCode,
+        updatedAt: Date.now()
+      }, { merge: true });
+    } catch (err) {
+      console.error('Failed to stamp active code:', err);
+      stampFailed = true;
+    }
+
     if (oldCode) {
       try {
         await waitForAuth();
@@ -4456,10 +4478,15 @@ function generateBubuCode() {
         await deleteDoc(doc(fbDb, 'codes', oldCode));
       } catch (err) {
         console.error('Failed to revoke old code:', err);
+        deleteFailed = true;
       }
     }
 
-    retroAlert('✅ CODE GENERATED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>Remember to tap SYNC NOW so it goes live.<br><br>The old code has been revoked — members using it will need the new one.`, '🔁');
+    if (stampFailed) {
+      retroAlert('⚠️ CODE GENERATED, BUT NOT SECURED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>⚠️ Could not confirm the lock with the server — check your internet connection and try SYNC NOW before trusting this code is secure.`, '⚠️');
+    } else {
+      retroAlert('✅ CODE GENERATED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>Remember to tap SYNC NOW so it goes live.<br><br>The old code no longer has access, even if it isn't fully removed from the server yet.`, '🔁');
+    }
   });
 }
 
@@ -4486,6 +4513,7 @@ async function syncNow() {
 
     await setDoc(doc(fbDb, 'handlers', handlerId), {
       ownerUid: uid,
+      activeCode: db.bubuCode,
       data: JSON.parse(JSON.stringify(db)),
       updatedAt: Date.now()
     });
@@ -4550,7 +4578,17 @@ async function memberFetchByCode(code, silent) {
       };
     }
 
-    db = handlerSnap.data().data;
+    const handlerData = handlerSnap.data();
+
+
+    if (handlerData.activeCode && handlerData.activeCode !== code) {
+      throw {
+        isInvalidCode: true,
+        message: '🚫 Your Bubu Code was revoked. The handler generated a new one — please ask your handler for the new code in their SETTINGS, then enter it below.'
+      };
+    }
+
+    db = handlerData.data;
     memberBubuCode = code;
     memberLastSync = Date.now();
     localStorage.setItem(MEMBER_CODE_KEY, code);
