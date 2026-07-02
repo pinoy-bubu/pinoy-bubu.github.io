@@ -513,7 +513,7 @@
   .accrual-item .al { font-family: 'Press Start 2P', monospace; font-size: 5.5px; color: var(--wood-darker); margin-bottom: 3px; line-height: 1.4; }
   .accrual-item .av { font-family: 'VT323', monospace; font-size: 18px; color: var(--black); font-weight: bold; }
   .accrual-item .av.danger { color: var(--red); }
-  .accrual-warning {
+.accrual-warning {
     font-family: 'VT323', monospace;
     font-size: 14px;
     color: var(--red);
@@ -521,6 +521,42 @@
     line-height: 1.4;
     font-weight: bold;
   }
+
+  .loan-date-line {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--wood-darker);
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--orange);
+  }
+  .loan-date-line strong { color: var(--black); }
+  
+  .next-interest-block {
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--orange);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.next-interest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  color: var(--wood-darker);
+  padding: 3px 0;
+}
+.next-interest-value {
+  font-weight: bold;
+  color: var(--black);
+  white-space: nowrap;
+}
+.next-interest-value.danger {
+  color: var(--red);
+}
 
   .detail-actions {
     display: grid;
@@ -947,6 +983,18 @@ body.install-banner-shown #header { top: 58px; }
     padding: 12px 14px;
     margin-bottom: 10px;
   }
+  .pro-payment-dates {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #4A0080;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #7B2FBE;
+  }
+  .pro-payment-dates strong { color: var(--black); }
+  
   .pro-detail-panel::before {
     content: '💜 PAYMENT DETAILS';
     font-family: 'Press Start 2P', monospace;
@@ -1600,7 +1648,7 @@ body.bubu-view-only #main {
           <div class="lbl" style="color:var(--wood-darker);">🎁 Interest Share<br><span style="font-size:5px;font-weight:normal;">(from payments collected)</span></div>
           <div class="val" id="d-interest-share" style="color:var(--wood-darker);">₱0</div>
         </div>
-        <div class="detail-card" style="background:linear-gradient(135deg,#A8E6CF,#80D4B0);border:3px solid var(--black);box-shadow:3px 3px 0 var(--black);">
+<div class="detail-card" style="background:linear-gradient(135deg,#A8E6CF,#80D4B0);border:3px solid var(--black);box-shadow:3px 3px 0 var(--black);">
           <div class="lbl" style="color:var(--wood-darker);">💵 TOTAL RECEIVABLE<br><span style="font-size:5px;font-weight:normal;">(contribution + interest share)</span></div>
           <div class="val" id="d-total-receivable" style="color:var(--black);font-size:20px;font-weight:bold;">₱0</div>
         </div>
@@ -1608,6 +1656,17 @@ body.bubu-view-only #main {
 
       <div id="loan-accrual-panel-wrap" style="display:none;">
         <div class="loan-accrual-panel">
+         <div class="loan-date-line" id="d-loan-date-line">Loan Date: <strong>—</strong></div>
+<div class="next-interest-block">
+  <div class="next-interest-row">
+    <span>⏰ Next Interest Date:</span>
+    <span class="next-interest-value" id="d-next-interest-date">—</span>
+  </div>
+  <div class="next-interest-row">
+    <span>Interest If Unpaid By Then:</span>
+    <span class="next-interest-value danger" id="d-next-interest-amount">₱0</span>
+  </div>
+</div>
           <div class="accrual-grid">
           <div class="detail-card accent-red">
           <div class="lbl">Principal Balance</div>
@@ -1650,7 +1709,11 @@ body.bubu-view-only #main {
 
 
 
-      <div id="pro-member-panel" class="pro-detail-panel" style="display:none;">
+<div id="pro-member-panel" class="pro-detail-panel" style="display:none;">
+        <div class="pro-payment-dates">
+          <div id="d-first-contrib-line">Contribution Date: <strong>—</strong></div>
+          <div id="d-last-release-line">Last Released Date: <strong>—</strong></div>
+        </div>
         <div class="pro-detail-grid">
           <div class="pro-detail-item">
             <div class="pl">Amortization</div>
@@ -2339,6 +2402,30 @@ function migrateScheduleDates() {
   delete ps.scheduleDays;
 }
 
+function deriveDatesFromEntries(m) {
+  const entries = [...(m.entries || [])].sort((a, b) => a.ts - b.ts);
+  let balance = 0;
+  let firstContribDate = null;
+  let lastReleaseDate = null;
+
+  entries.forEach(e => {
+    if (e.type === 'contribution') {
+      if (balance <= 0) {
+        firstContribDate = e.ts;
+        lastReleaseDate = null;
+      }
+      balance += e.amount;
+    } else if (e.type === 'release') {
+      lastReleaseDate = e.ts;
+      balance = 0;
+    }
+  });
+
+  return { firstContribDate, lastReleaseDate };
+}
+
+
+
 function migrateMembers() {
   (db.members || []).forEach(m => {
     if (typeof m.interestEarned !== 'number') m.interestEarned = 0;
@@ -2360,6 +2447,11 @@ function migrateMembers() {
     if (typeof m.proLastSyncTs !== 'number') m.proLastSyncTs = 0;
     if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
     if (!Array.isArray(m.proProcessedDues)) m.proProcessedDues = [];
+    if (typeof m.firstContribDate === 'undefined' || typeof m.lastReleaseDate === 'undefined') {
+      const derived = deriveDatesFromEntries(m);
+      if (typeof m.firstContribDate === 'undefined') m.firstContribDate = derived.firstContribDate;
+      if (typeof m.lastReleaseDate === 'undefined') m.lastReleaseDate = derived.lastReleaseDate;
+    }
   });
 }
 
@@ -2464,8 +2556,9 @@ function fmt(n) {
 function getMember(id) { return db.members.find(m => m.id === id); }
 function genId() { return 'mbr_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); }
 
-const MAX_ENTRIES_PER_MEMBER = 50;
-const MAX_HISTORY_ENTRIES = 300;
+const MAX_ENTRIES_PER_MEMBER = 100;
+const MAX_HISTORY_ENTRIES = 200;
+const MAX_MEMBERS = 60;
 
 function pushMemberEntry(member, entry) {
   member.entries.push(entry);
@@ -2668,6 +2761,10 @@ let suggestHideTimer = null;
 
 function openAddMember() {
   if (db.interestRate === null) { checkInterestSetup(); return; }
+  if (db.members.length >= MAX_MEMBERS) {
+    retroAlert('🚫 MEMBER LIMIT REACHED', `This Bubu already has the<br>maximum of <strong>${MAX_MEMBERS} members</strong>.<br><br>Remove an existing member<br>to add a new one.`, '⚠️');
+    return;
+  }
   document.getElementById('input-member-name').value = '';
   hideNameSuggestions();
   document.getElementById('modal-add-member').style.display = 'flex';
@@ -2747,6 +2844,11 @@ function rememberMemberName(name) {
 }
 
 function confirmAddMember() {
+  if (db.members.length >= MAX_MEMBERS) {
+    retroAlert('🚫 MEMBER LIMIT REACHED', `This Bubu already has the<br>maximum of <strong>${MAX_MEMBERS} members</strong>.`, '⚠️');
+    closeModal('modal-add-member');
+    return;
+  }
   const name = document.getElementById('input-member-name').value.trim();
   if (!name) { retroAlert('⚠️ MISSING NAME', 'Please enter a member name!', '⚠️'); return; }
   if (db.members.find(m => m.name === name)) { retroAlert('⚠️ DUPLICATE', 'A member with this name<br>already exists!', '⚠️'); return; }
@@ -2776,6 +2878,8 @@ function addMemberFinal() {
     proLastSyncTs: db.proMode ? now : 0,
     proAdvanceCredits: [],
     proProcessedDues: db.proMode ? [...(db.proSettings.scheduleHistory || [])] : [],
+    firstContribDate: null,
+    lastReleaseDate: null,
   };
   db.members.push(member);
   rememberMemberName(name);
@@ -2803,13 +2907,18 @@ function refreshMemberDetail() {
   if (db.proMode && db.proSettings && db.proSettings.releaseDate) {
     const rd = isoToDate(db.proSettings.releaseDate);
     releaseDateEl.style.display = 'block';
-    releaseDateEl.innerHTML = `🗓️ Release Date: <strong>${formatShortDate(rd)}, ${rd.getFullYear()}</strong>`;
+    releaseDateEl.innerHTML = `🗓️ Contribution Release Date: <strong>${formatShortDate(rd)}, ${rd.getFullYear()}</strong>`;
   } else {
     releaseDateEl.style.display = 'none';
   }
 
   document.getElementById('d-contributed').textContent = fmt(m.totalContributed);
   document.getElementById('d-joined').textContent = formatDate(m.joinedAt).split(' ').slice(0,3).join(' ');
+
+  document.getElementById('d-first-contrib-line').innerHTML =
+    'Joined Contribution: <strong>' + (m.firstContribDate ? formatDate(m.firstContribDate).split(' ').slice(0,3).join(' ') : '—') + '</strong>';
+  document.getElementById('d-last-release-line').innerHTML =
+    'Last Released Date: <strong>' + (m.lastReleaseDate ? formatDate(m.lastReleaseDate).split(' ').slice(0,3).join(' ') : '—') + '</strong>';
   document.getElementById('d-loan-original').textContent = fmt(m.loanAmount);
   document.getElementById('d-loan-balance').textContent = fmt(m.loanBalance);
 
@@ -2873,7 +2982,23 @@ function refreshMemberDetail() {
   if (m.loanBalance > 0 && db.interestRate) {
     accrualWrap.style.display = 'block';
     const accrual = computeAccruedInterest(m, now);
+    document.getElementById('d-loan-date-line').innerHTML =
+      'Loan Release Date: <strong>' + (m.loanStartDate ? formatDate(m.loanStartDate).split(' ').slice(0,3).join(' ') : '—') + '</strong>';
+
+    if (m.loanStartDate) {
+      const nextInterestTs = m.loanStartDate + accrual.billingMonths * MS_PER_MONTH;
+      const nextInterestAmount = m.loanBalance * (db.interestRate / 100);
+      document.getElementById('d-next-interest-date').textContent =
+        formatDate(nextInterestTs).split(' ').slice(0,3).join(' ');
+      document.getElementById('d-next-interest-amount').textContent = fmt(nextInterestAmount);
+    } else {
+      document.getElementById('d-next-interest-date').textContent = '—';
+      document.getElementById('d-next-interest-amount').textContent = fmt(0);
+    }
+
     document.getElementById('d-monthly-rate').textContent = db.interestRate + '%';
+    
+    
     document.getElementById('d-months-elapsed').textContent = accrual.billingMonths;
     document.getElementById('d-accrued-interest').textContent = fmt(accrual.accrued);
     document.getElementById('d-total-due').textContent = fmt(accrual.totalDue);
@@ -3027,6 +3152,11 @@ function addContributionFinal() {
         cyclesClearedNote = ` — paid in advance for the upcoming due date`;
       }
     }
+  }
+
+  if (!m.totalContributed || m.totalContributed <= 0) {
+    m.firstContribDate = now;
+    m.lastReleaseDate = null;
   }
 
   m.totalContributed += pendingContribAmount;
@@ -3335,6 +3465,7 @@ function releaseFinal() {
   m.totalContributed = 0;
   m.interestEarned = 0;
   m.proAdvanceCredits = [];
+  m.lastReleaseDate = Date.now();
 
   let redistributeNote = '';
   if (forfeited > 0) {
@@ -4135,6 +4266,11 @@ function doRestoreFinal() {
     if (typeof m.proLastSyncTs !== 'number') m.proLastSyncTs = 0;
     if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
     if (!Array.isArray(m.proProcessedDues)) m.proProcessedDues = [];
+    if (typeof m.firstContribDate === 'undefined' || typeof m.lastReleaseDate === 'undefined') {
+      const derived = deriveDatesFromEntries(m);
+      if (typeof m.firstContribDate === 'undefined') m.firstContribDate = derived.firstContribDate;
+      if (typeof m.lastReleaseDate === 'undefined') m.lastReleaseDate = derived.lastReleaseDate;
+    }
   });
 
 
