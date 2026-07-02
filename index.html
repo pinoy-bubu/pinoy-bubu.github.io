@@ -561,8 +561,9 @@
   .entry-type.release { background: var(--sky-dark); color: var(--white); }
   .entry-type.accrual { background: #FFD5A0; }
 
-  .entry-amount { font-size: 16px; font-weight: bold; }
+ .entry-amount { font-size: 16px; font-weight: bold; }
   .entry-date { font-size: 12px; color: #666; }
+  .entry-balance { font-size: 11px; color: var(--wood-darker); font-style: italic; margin-top: 2px; }
 
   .section-title {
     font-family: 'Press Start 2P', monospace;
@@ -2938,11 +2939,22 @@ function refreshMemberDetail() {
           (e.principalPaid > 0 ? `Principal: ${fmt(e.principalPaid)}` : '') +
           `</div>` : '';
 
+      let balanceDetail = '';
+      if (e.type === 'contribution' && typeof e.contribBalance === 'number') {
+        balanceDetail = `<div class="entry-balance">Contribution Balance: ${fmt(e.contribBalance)}</div>`;
+      } else if (e.type === 'loan' && typeof e.loanBalanceAfter === 'number') {
+        balanceDetail = `<div class="entry-balance">Loan Balance: ${fmt(e.loanBalanceAfter)}</div>`;
+      } else if (e.type === 'loan_pay' && typeof e.remaining === 'number') {
+        balanceDetail = `<div class="entry-balance">Loan Balance: ${fmt(e.remaining)}</div>`;
+      } else if (e.type === 'release') {
+        balanceDetail = `<div class="entry-balance">Release Amount: ${fmt(e.amount)} · Contribution Balance: ${fmt(0)} · Interest Balance: ${fmt(0)}</div>`;
+      }
+
       div.innerHTML = `
         <div>
           <span class="entry-type ${typeClass}">${typeLabel}</span>
           <div class="entry-date">${formatDate(e.ts)}</div>
-          ${releaseDetail}${payDetail}
+          ${releaseDetail}${payDetail}${balanceDetail}
         </div>
         <div class="entry-amount">${fmt(e.amount)}</div>
       `;
@@ -3022,7 +3034,8 @@ function addContributionFinal() {
     type: 'contribution',
     amount: pendingContribAmount,
     ts: now,
-    penalty: penaltyDistributed
+    penalty: penaltyDistributed,
+    contribBalance: m.totalContributed
   });
   m.paymentCount += 1;
   addHistory('💰', 'Contribution Added', `${m.name} contributed ${fmt(pendingContribAmount)}${penaltyDistributed > 0 ? ` (incl. ${fmt(penaltyDistributed)} penalty)` : ''}${cyclesClearedNote}`);
@@ -3115,7 +3128,8 @@ function addLoanFinal() {
     type: 'loan',
     amount: val,
     ts: Date.now(),
-    monthlyRate: db.interestRate
+    monthlyRate: db.interestRate,
+    loanBalanceAfter: m.loanBalance
   });
 
   const firstMonthInterest = val * db.interestRate / 100;
@@ -3313,7 +3327,9 @@ function releaseFinal() {
     ts: Date.now(),
     contribution: m.totalContributed,
     interestShare: memberPortion,
-    forfeited: forfeited
+    forfeited: forfeited,
+    contribBalanceAfter: 0,
+    interestBalanceAfter: 0
   });
 
   m.totalContributed = 0;
