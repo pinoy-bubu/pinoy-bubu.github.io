@@ -4499,6 +4499,12 @@ function copyBubuCode() {
   });
 }
 
+function getSyncSafeData() {
+  const clone = JSON.parse(JSON.stringify(db));
+  delete clone.proPassword; 
+  return clone;
+}
+
 async function syncNow() {
   if (!db.bubuCode) { retroAlert('⚠️ NO CODE', 'Generate a Bubu Code before syncing!', '⚠️'); return; }
   const statusLine = document.getElementById('sync-status-line');
@@ -4514,7 +4520,7 @@ async function syncNow() {
     await setDoc(doc(fbDb, 'handlers', handlerId), {
       ownerUid: uid,
       activeCode: db.bubuCode,
-      data: JSON.parse(JSON.stringify(db)),
+      data: getSyncSafeData(),
       updatedAt: Date.now()
     });
     await setDoc(doc(fbDb, 'codes', db.bubuCode), {
