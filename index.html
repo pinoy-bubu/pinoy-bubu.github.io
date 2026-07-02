@@ -10,7 +10,7 @@
 <title>Pinoy-BUBU</title>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -27,7 +27,7 @@
   const fbAuth = getAuth(fbApp);
 
 
-  window.__bubuFirebase = { fbDb, fbAuth, doc, getDoc, setDoc };
+  window.__bubuFirebase = { fbDb, fbAuth, doc, getDoc, setDoc, deleteDoc };
 
   signInAnonymously(fbAuth).catch(err => console.error("Anon auth failed:", err));
   onAuthStateChanged(fbAuth, user => {
@@ -1294,6 +1294,14 @@ body.install-banner-shown #header { top: 58px; }
 }
 #update-btn:hover { background: rgba(0,0,0,0.7); }
 
+#reenter-code-btn {
+  position: fixed; bottom: 44px; right: 12px;
+  font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 4px 7px;
+  background: rgba(0,0,0,0.5); color: var(--cream); border: 1px solid rgba(255,255,255,0.3);
+  cursor: pointer; z-index: 99; letter-spacing: 0.5px;
+}
+#reenter-code-btn:hover { background: rgba(0,0,0,0.7); }
+
 .bubu-code-display {
   font-family: 'Press Start 2P', monospace; font-size: 20px; letter-spacing: 4px;
   background: var(--cream); border: 2px solid var(--black); box-shadow: 3px 3px 0 var(--black);
@@ -1332,6 +1340,7 @@ body.bubu-view-only #main {
       onkeydown="if(event.key==='Enter') submitBubuCode()">
     <div id="bubu-code-error" style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--red);min-height:20px;margin-bottom:10px;"></div>
     <button class="btn btn-sky btn-lg" style="width:100%;" onclick="submitBubuCode()">🔓 CONNECT</button>
+    <button id="cancel-code-btn" style="display:none;width:100%;margin-top:10px;background:none;border:none;color:var(--wood-darker);font-family:'VT323',monospace;font-size:15px;text-decoration:underline;cursor:pointer;" onclick="closeReenterCodeModal()">Cancel</button>
   </div>
 </div>
 
@@ -1456,6 +1465,7 @@ body.bubu-view-only #main {
 <button id="disclaimer-btn" onclick="showDisclaimer()">ℹ DISCLAIMER</button>
 <button id="settings-btn" onclick="openSettings()">⚙ SETTINGS</button>
 <button id="update-btn" style="display:none;" onclick="memberUpdateNow()">🔄 UPDATE</button>
+<button id="reenter-code-btn" style="display:none;" onclick="openReenterCodeModal()">🔗 CHANGE CODE</button>
 <div id="install-banner" style="display:none;">
   <div id="install-banner-icon">📲</div>
   <div id="install-banner-text">
@@ -1570,7 +1580,8 @@ body.bubu-view-only #main {
       </div>
       <button class="btn btn-red btn-sm" style="flex-shrink:0;" onclick="closeModal('modal-member-detail')">✖</button>
     </div>
-    <div class="modal-body">
+   <div class="modal-body">
+      <div id="d-release-date-display" style="display:none;font-family:'VT323',monospace;font-size:15px;color:var(--wood-darker);text-align:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--wood);"></div>
       <div class="detail-info-grid">
         <div class="detail-card">
           <div class="lbl">Total Contributed</div>
@@ -1663,7 +1674,22 @@ body.bubu-view-only #main {
             <div class="pv penalty" id="d-pro-total-due">₱0</div>
           </div>
         </div>
-        <div class="pro-sched-info" id="d-pro-sched-info"></div>
+<div class="pro-sched-info" id="d-pro-sched-info"></div>
+
+        <div id="pro-advance-panel" style="display:none;margin-top:10px;background:linear-gradient(135deg,#D0F0E0,#A8E6CF);border:3px solid var(--green);box-shadow:3px 3px 0 var(--black);padding:10px 12px;">
+          <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#1A5C38;margin-bottom:8px;">🟢 ADVANCE PAYMENT</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <div style="background:rgba(255,255,255,0.7);border:1px solid var(--green);padding:6px;text-align:center;">
+              <div style="font-family:'Press Start 2P',monospace;font-size:5px;color:#1A5C38;margin-bottom:3px;">ADVANCE PAYMENT(S)</div>
+              <div style="font-family:'VT323',monospace;font-size:18px;color:var(--black);font-weight:bold;" id="d-advance-count">0</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.7);border:1px solid var(--green);padding:6px;text-align:center;">
+              <div style="font-family:'Press Start 2P',monospace;font-size:5px;color:#1A5C38;margin-bottom:3px;">ADVANCE AMOUNT</div>
+              <div style="font-family:'VT323',monospace;font-size:18px;color:var(--black);font-weight:bold;" id="d-advance-amount">₱0</div>
+            </div>
+          </div>
+          <div style="font-family:'VT323',monospace;font-size:13px;color:#1A5C38;text-align:center;" id="d-advance-dates"></div>
+        </div>
       </div>
 
       <div class="alert-info" id="d-interest-note" style="display:none;"></div>
@@ -1941,7 +1967,7 @@ body.bubu-view-only #main {
           <div class="pay-freq-opt" id="freq-3" onclick="selectFreq(3)">THREE<br>TIMES</div>
         </div>
 
-        <<div class="section-title">📆 PAYMENT SCHEDULE</div>
+        <div class="section-title">📆 PAYMENT SCHEDULE</div>
         <div class="schedule-slots" id="schedule-slots" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
         </div>
         <div style="font-family:'VT323',monospace;font-size:13px;color:var(--wood-dark);margin:-4px 0 12px;text-align:center;">
@@ -1953,9 +1979,17 @@ body.bubu-view-only #main {
           <input class="form-input" id="input-amort-amount" type="number" min="1" placeholder="e.g. 200">
         </div>
 
-        <div class="section-title">⚠️ PENALTY PER DAY (LATE)</div>
+<div class="section-title">⚠️ PENALTY PER DAY (LATE)</div>
         <div class="form-group">
           <input class="form-input" id="input-penalty-per-day" type="number" min="0" placeholder="e.g. 5">
+        </div>
+
+        <div class="section-title">🗓️ RELEASE DATE (SCHEDULE)</div>
+        <div class="form-group">
+          <input class="form-input" id="input-release-date" type="date">
+        </div>
+        <div style="font-family:'VT323',monospace;font-size:13px;color:var(--wood-dark);margin:-4px 0 12px;text-align:center;">
+          📌 On/after this date, members get their FULL interest share on release. Releasing before it forfeits 80% of their interest share to the group. Leave blank to disable this rule.
         </div>
 
         <button class="btn btn-green" style="width:100%;" onclick="saveProSettings()">💾 SAVE PRO SETTINGS</button>
@@ -2002,11 +2036,15 @@ body.bubu-view-only #main {
       <span class="modal-title">ℹ️ DISCLAIMER</span>
       <button class="btn btn-red btn-sm" onclick="closeModal('modal-disclaimer')">✖</button>
     </div>
-    <div class="modal-body">
-      <div class="pixel-icon">📋</div>
+<div class="modal-body">
+
+      <div style="text-align:left;margin-bottom:10px;">
+        <button class="btn btn-gold btn-sm" onclick="openPolicyModal()">CLICK ME! TO SEE OUR  POLICY</button>
+      </div>
+            <br><br>
 <div style="font-family:'VT323',monospace;font-size:18px;line-height:1.6;color:var(--black);text-align:left;padding:10px;">
         <strong>What this app is</strong><br>
-        BUBU is a record-keeping tool for tracking the contributions, loans, and interest of a community savings group ("Bubu"). It is not a financial institution and does not offer, promote, or endorse lending services.
+        Pinoy-BUBU is a record-keeping tool for tracking the contributions, loans, and interest of a community savings group ("Bubu"). It is not a financial institution and does not offer, promote, or endorse lending services.
         <br><br>
         <strong>How interest works</strong><br>
         Loan interest uses simple interest only — a fixed amount (principal × rate) is added every 30 days. Interest does not compound.
@@ -2030,6 +2068,20 @@ body.bubu-view-only #main {
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-policy" style="display:none;">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <span class="modal-title">📜 OUR BU-BU POLICY</span>
+      <button class="btn btn-red btn-sm" onclick="closeModal('modal-policy')">✖</button>
+    </div>
+    <div class="modal-body" id="policy-modal-body">
+      <!-- populated dynamically by buildPolicyContent() -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gold" onclick="closeModal('modal-policy')">✅ UNDERSTOOD</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal-delayed" style="display:none;">
   <div class="modal" style="max-width:500px;">
@@ -2154,6 +2206,7 @@ let pendingInterestRate = null;
 let pendingContribAmount = null;
 let pendingLoanAmount = null;
 let pendingLoanPayAmount = null;
+let pendingReleaseInfo = null;
 let memberSearchTerm = '';
 let pendingRestoreData = null;
 let appRole = null;          
@@ -2221,6 +2274,7 @@ function applyRoleUI() {
   document.body.classList.toggle('bubu-view-only', isMember);
   document.getElementById('settings-btn').style.display = isMember ? 'none' : 'inline-block';
   document.getElementById('update-btn').style.display = isMember ? 'inline-block' : 'none';
+  document.getElementById('reenter-code-btn').style.display = isMember ? 'inline-block' : 'none';
   document.querySelector('#bottom-bar').style.display = isMember ? 'none' : 'flex';
   document.getElementById('view-only-banner-wrap').style.display = isMember ? 'block' : 'none';
   if (isMember) updateViewOnlyBanner();
@@ -2242,6 +2296,12 @@ function isoToDate(iso) {
   if (!iso) return null;
   const [y, m, d] = iso.split('-').map(Number);
   return new Date(y, m - 1, d);
+}
+
+function wholeDaysBetween(fromTs, toTs) {
+  const fromMid = new Date(fromTs); fromMid.setHours(0,0,0,0);
+  const toMid = new Date(toTs); toMid.setHours(0,0,0,0);
+  return Math.round((toMid.getTime() - fromMid.getTime()) / MS_PER_DAY);
 }
 
 function dateToISO(date) {
@@ -2298,9 +2358,22 @@ function migrateMembers() {
     if (typeof m.proPenaltyBalance !== 'number') m.proPenaltyBalance = 0;
     if (typeof m.proLastSyncTs !== 'number') m.proLastSyncTs = 0;
     if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
+    if (!Array.isArray(m.proProcessedDues)) m.proProcessedDues = [];
   });
 }
 
+function getLoanBalanceAt(member, ts) {
+  if (!member.loanStartDate) return 0;
+  const events = (member.entries || [])
+    .filter(e => e.ts <= ts && e.ts >= member.loanStartDate && (e.type === 'loan' || e.type === 'loan_pay'))
+    .sort((a, b) => a.ts - b.ts);
+  let balance = member.loanAmount;
+  events.forEach(e => {
+    if (e.type === 'loan') balance = e.amount;
+    else if (e.type === 'loan_pay') balance = e.remaining;
+  });
+  return balance;
+}
 
 function computeAccruedInterest(member, now) {
   if (!member.loanBalance || member.loanBalance <= 0) {
@@ -2313,9 +2386,14 @@ function computeAccruedInterest(member, now) {
   const elapsed = now - member.loanStartDate;
   const monthsElapsed = Math.floor(elapsed / MS_PER_MONTH);
   const billingMonths = monthsElapsed + 1;
-
   const rate = db.interestRate / 100;
-  const totalInterestOwed = member.loanAmount * rate * billingMonths;
+
+  let totalInterestOwed = 0;
+  for (let i = 0; i < billingMonths; i++) {
+    const billingTs = member.loanStartDate + (i * MS_PER_MONTH);
+    const balanceAtBilling = getLoanBalanceAt(member, billingTs);
+    totalInterestOwed += balanceAtBilling * rate;
+  }
 
   const alreadyPaid = member.loanAccruedInterest || 0;
   const stillOwed = Math.max(0, totalInterestOwed - alreadyPaid);
@@ -2464,6 +2542,7 @@ function renderMembers() {
   const list = document.getElementById('member-list');
   const searchWrap = document.getElementById('member-search-wrap');
   list.innerHTML = '';
+  const now = Date.now();
 
   if (db.members.length === 0) {
     searchWrap.style.display = 'none';
@@ -2489,7 +2568,7 @@ function renderMembers() {
     return;
   }
 
-  const now = Date.now();
+  
   filtered.forEach(m => {
     const div = document.createElement('div');
     div.className = 'member-item';
@@ -2695,6 +2774,7 @@ function addMemberFinal() {
     proPenaltyBalance: 0,
     proLastSyncTs: db.proMode ? now : 0,
     proAdvanceCredits: [],
+    proProcessedDues: db.proMode ? [...(db.proSettings.scheduleHistory || [])] : [],
   };
   db.members.push(member);
   rememberMemberName(name);
@@ -2717,6 +2797,16 @@ function refreshMemberDetail() {
   const now = Date.now();
 
   document.getElementById('detail-name').textContent = m.name;
+
+  const releaseDateEl = document.getElementById('d-release-date-display');
+  if (db.proMode && db.proSettings && db.proSettings.releaseDate) {
+    const rd = isoToDate(db.proSettings.releaseDate);
+    releaseDateEl.style.display = 'block';
+    releaseDateEl.innerHTML = `🗓️ Release Date: <strong>${formatShortDate(rd)}, ${rd.getFullYear()}</strong>`;
+  } else {
+    releaseDateEl.style.display = 'none';
+  }
+
   document.getElementById('d-contributed').textContent = fmt(m.totalContributed);
   document.getElementById('d-joined').textContent = formatDate(m.joinedAt).split(' ').slice(0,3).join(' ');
   document.getElementById('d-loan-original').textContent = fmt(m.loanAmount);
@@ -2747,9 +2837,24 @@ function refreshMemberDetail() {
       const readableSched = ps.scheduleDates.map(iso => { const d = isoToDate(iso); return formatShortDate(d) + ' \'' + String(d.getFullYear()).slice(2); }).join(', ');
       document.getElementById('d-pro-sched-info').textContent =
         `Schedule: ${readableSched} · ${ps.frequency}x/month · Base penalty: ${fmt(ps.penaltyPerDay)}/day per unpaid cycle`;
+
+      const advPanel = document.getElementById('pro-advance-panel');
+      const credits = m.proAdvanceCredits || [];
+      if (credits.length > 0) {
+        advPanel.style.display = 'block';
+        const totalAdv = credits.reduce((s, c) => s + c.amount, 0);
+        document.getElementById('d-advance-count').textContent = credits.length;
+        document.getElementById('d-advance-amount').textContent = fmt(totalAdv);
+        const dueDates = getNextNDueDates(credits.length);
+        const datesStr = dueDates.map(d => formatShortDate(d) + ` '${String(d.getFullYear()).slice(2)}`).join(', ');
+        document.getElementById('d-advance-dates').textContent = `Covers: ${datesStr}`;
+      } else {
+        advPanel.style.display = 'none';
+      }
     }
   } else {
     proPanel.style.display = 'none';
+    document.getElementById('pro-advance-panel').style.display = 'none';
   }
 
   const noteEl = document.getElementById('d-interest-note');
@@ -2825,7 +2930,7 @@ function refreshMemberDetail() {
       else if (e.type === 'release') { typeClass = 'release'; typeLabel = 'RELEASE'; }
 
       const releaseDetail = (e.type === 'release' && e.interestShare)
-        ? `<div style="font-size:11px;color:var(--green-light);">+${fmt(e.interestShare)} interest share</div>` : '';
+        ? `<div style="font-size:11px;color:var(--green-light);">+${fmt(e.interestShare)} interest share${e.forfeited ? ` <span style="color:var(--red);">(forfeited ${fmt(e.forfeited)})</span>` : ''}</div>` : '';
 
       const payDetail = (e.type === 'loan_pay')
         ? `<div style="font-size:11px;color:var(--sky-deeper);">` +
@@ -2885,8 +2990,8 @@ function addContributionFinal() {
     const info = getProDueInfo(m, now);
     if (info) {
       const required = info.totalRequired;
-      if (Math.abs(pendingContribAmount - required) > 0.01) {
-        retroAlert('❌ WRONG AMOUNT', `Required: <strong>${fmt(required)}</strong><br>Unpaid Amortization: ${fmt(info.unpaidAmortTotal)}${info.cycleCount > 1 ? ` (${info.cycleCount} cycles)` : ''}<br>Penalty: ${fmt(info.penaltyAmt)}<br><br>Please input the exact amount.`, '⚠️');
+      if (pendingContribAmount < required - 0.01) {
+        retroAlert('❌ WRONG AMOUNT', `Required (minimum): <strong>${fmt(required)}</strong><br>Unpaid Amortization: ${fmt(info.unpaidAmortTotal)}${info.cycleCount > 1 ? ` (${info.cycleCount} cycles)` : ''}<br>Penalty: ${fmt(info.penaltyAmt)}<br><br>Please input at least this amount.`, '⚠️');
         return;
       }
 
@@ -3147,6 +3252,10 @@ function addLoanPaymentFinal() {
   renderMembers();
 }
 
+function isReleaseOnOrAfterSchedule() {
+  if (!db.proMode || !db.proSettings || !db.proSettings.releaseDate) return true;
+  return todayISO() >= db.proSettings.releaseDate;
+}
 
 function confirmRelease() {
   const m = getMember(activeMemberId);
@@ -3154,39 +3263,77 @@ function confirmRelease() {
   if (m.totalContributed <= 0 && (m.interestEarned || 0) <= 0) {
     retroAlert('📤 NOTHING TO RELEASE', 'No contributions or interest<br>to release!', 'ℹ️'); return;
   }
+
   const interestShare = m.interestEarned || 0;
-  const totalReceivable = m.totalContributed + interestShare;
+  const onSchedule = isReleaseOnOrAfterSchedule();
+
+  let memberInterestPortion = interestShare;
+  let forfeitedPortion = 0;
+  let extraNote = '';
+
+  if (!onSchedule && interestShare > 0) {
+    memberInterestPortion = interestShare * 0.20;
+    forfeitedPortion = interestShare * 0.80;
+    const rd = isoToDate(db.proSettings.releaseDate);
+    extraNote = `<div class="alert-banner" style="text-align:left;margin-top:12px;">⚠ EARLY RELEASE PENALTY<br><br>` +
+      `Scheduled release date: <strong>${formatShortDate(rd)}, ${rd.getFullYear()}</strong><br>` +
+      `Releasing today forfeits <strong>80%</strong> of your interest share.<br><br>` +
+      `Full interest share: ${fmt(interestShare)}<br>` +
+      `You receive (20%): <strong>${fmt(memberInterestPortion)}</strong><br>` +
+      `Forfeited (80%): <strong style="color:var(--red)">${fmt(forfeitedPortion)}</strong> — goes to other members &amp; handler</div>`;
+  }
+
+  const totalReceivable = m.totalContributed + memberInterestPortion;
+  pendingReleaseInfo = { memberInterestPortion, forfeitedPortion, onSchedule };
+
   document.getElementById('confirm-release-msg').innerHTML =
     `Release funds for<br><br><strong>${m.name}</strong><br><br>` +
     `Contributions: ${fmt(m.totalContributed)}<br>` +
-    `Interest Share: <span style="color:var(--green)">+${fmt(interestShare)}</span><br>` +
-    `<strong>Total Payout: ${fmt(totalReceivable)}</strong>`;
+    `Interest Share: <span style="color:var(--green)">+${fmt(memberInterestPortion)}</span>` +
+    `${!onSchedule ? ' <span style="font-size:12px;color:var(--red);">(reduced)</span>' : ''}<br>` +
+    `<strong>Total Payout: ${fmt(totalReceivable)}</strong>` + extraNote;
   document.getElementById('modal-confirm-release').style.display = 'flex';
 }
 
 function releaseFinal() {
   const m = getMember(activeMemberId);
-  const interestShare = m.interestEarned || 0;
-  const totalReceivable = m.totalContributed + interestShare;
+  const info = pendingReleaseInfo || { memberInterestPortion: m.interestEarned || 0, forfeitedPortion: 0, onSchedule: true };
+  const memberPortion = info.memberInterestPortion;
+  const forfeited = info.forfeitedPortion;
+  const totalReceivable = m.totalContributed + memberPortion;
 
   db.totalReleased += totalReceivable;
 
-  db.totalInterestCollected = Math.max(0, (db.totalInterestCollected || 0) - interestShare);
+
+  db.totalInterestCollected = Math.max(0, (db.totalInterestCollected || 0) - memberPortion);
 
   pushMemberEntry(m, {
     type: 'release',
     amount: totalReceivable,
     ts: Date.now(),
     contribution: m.totalContributed,
-    interestShare
+    interestShare: memberPortion,
+    forfeited: forfeited
   });
 
   m.totalContributed = 0;
   m.interestEarned = 0;
+  m.proAdvanceCredits = [];
 
-  addHistory('📤', 'Money Released', `${m.name} received ${fmt(totalReceivable)} (incl. ${fmt(interestShare)} interest share)`);
+  let redistributeNote = '';
+  if (forfeited > 0) {
+    const eligible = db.members.filter(mb => mb.id !== m.id && (mb.totalContributed || 0) > 0);
+    const totalSlots = eligible.length + 1; 
+    const perSlot = forfeited / totalSlots;
+    eligible.forEach(mb => { mb.interestEarned = (mb.interestEarned || 0) + perSlot; });
+    db.handlerFee = (db.handlerFee || 0) + perSlot;
+    redistributeNote = ` | ${fmt(forfeited)} forfeited interest redistributed to ${eligible.length} member${eligible.length !== 1 ? 's' : ''} & handler`;
+  }
+
+  addHistory('📤', 'Money Released', `${m.name} received ${fmt(totalReceivable)} (incl. ${fmt(memberPortion)} interest share)${!info.onSchedule ? ' — EARLY RELEASE' : ''}${redistributeNote}`);
   saveDB();
   closeModal('modal-confirm-release');
+  pendingReleaseInfo = null;
   refreshMemberDetail();
   renderMembers();
 }
@@ -3261,6 +3408,7 @@ function openSettings() {
   const ps = db.proSettings || {};
   document.getElementById('input-amort-amount').value = ps.amortAmount || '';
   document.getElementById('input-penalty-per-day').value = ps.penaltyPerDay || '';
+  document.getElementById('input-release-date').value = ps.releaseDate || '';
   renderFreqButtons(ps.frequency || 1);
   renderScheduleSlots(ps.frequency || 1, ps.scheduleDates || [todayISO()]);
   document.getElementById('modal-settings').style.display = 'flex';
@@ -3405,26 +3553,39 @@ function saveProSettings() {
   if (proOn && amort <= 0) { retroAlert('⚠️ MISSING', 'Please enter a valid<br>amortization amount!', '⚠️'); return; }
   if (proOn && freq > 0 && dates.length < freq) { retroAlert('⚠️ MISSING', 'Please set all payment<br>dates before saving!', '⚠️'); return; }
 
+  const releaseDateVal = document.getElementById('input-release-date').value || null;
+
   const wasProMode = db.proMode;
+  const oldScheduleDates = JSON.stringify((db.proSettings && db.proSettings.scheduleDates) || []);
+  const newScheduleDates = JSON.stringify(dates);
+  const scheduleChanged = oldScheduleDates !== newScheduleDates;
+
   db.proMode = proOn;
   db.proSettings = { 
   frequency: freq, 
   scheduleDates: dates, 
   amortAmount: amort, 
   penaltyPerDay: penalty,
+  releaseDate: releaseDateVal,
   scheduleHistory: db.proSettings.scheduleHistory || []  
 };
 
   if (proOn && !wasProMode) {
     const now = Date.now();
     db.members.forEach(m => {
-      m.proLastPaidTs = now;       
-      m.proPenaltyDays = 0;        
-      m.proUnpaidCycles = [];
-      m.proPenaltyBalance = 0;
-      m.proLastSyncTs = new Date(now).setHours(0, 0, 0, 0);
-      m.proAdvanceCredits = [];
+      if (!Array.isArray(m.proUnpaidCycles)) m.proUnpaidCycles = [];
+      if (typeof m.proPenaltyBalance !== 'number') m.proPenaltyBalance = 0;
+      if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
+      if (!Array.isArray(m.proProcessedDues)) m.proProcessedDues = [];
+      m.proLastSyncTs = now;
     });
+  } else if (proOn && wasProMode && scheduleChanged) {
+
+    const now = Date.now();
+    db.members.forEach(m => {
+      m.proLastSyncTs = now;
+    });
+    addHistory('🔄', 'Schedule Re-Synced', 'Payment schedule changed — member sync points reset to prevent false penalties from old dates.');
   }
 
   const readableDates = dates.map(iso => { const d = isoToDate(iso); return formatShortDate(d) + ', ' + d.getFullYear(); }).join(' / ');
@@ -3489,41 +3650,54 @@ function syncMemberCycles(member, now) {
   if (!Array.isArray(member.proUnpaidCycles)) member.proUnpaidCycles = [];
   if (typeof member.proPenaltyBalance !== 'number') member.proPenaltyBalance = 0;
   if (!Array.isArray(member.proAdvanceCredits)) member.proAdvanceCredits = [];
+  if (!Array.isArray(member.proProcessedDues)) member.proProcessedDues = [];
+  if (!Array.isArray(ps.scheduleHistory)) return;
 
+  const pending = ps.scheduleHistory
+    .filter(iso => !member.proProcessedDues.includes(iso))
+    .sort();
 
-  if (!member.proLastSyncTs) {
-  member.proLastSyncTs = now;
-}
+  let segmentStart = member.proLastSyncTs || member.joinedAt || now;
 
-  if (now <= member.proLastSyncTs) return; 
+  // FIX: no newly-crossed due date, but still charge penalty for the
+  // days that have passed since the last sync if a cycle is still unpaid.
+  if (pending.length === 0) {
+    const gapDays = wholeDaysBetween(segmentStart, now);
+    if (gapDays > 0 && member.proUnpaidCycles.length > 0) {
+      member.proPenaltyBalance += ps.penaltyPerDay * member.proUnpaidCycles.length * gapDays;
+    }
+    member.proLastSyncTs = now;
+    return;
+  }
 
-  const crossed = getCrossedDueDates(member.proLastSyncTs, now);
-  let segmentStart = member.proLastSyncTs;
-
-  crossed.forEach(dueDate => {
-    const segmentEnd = dueDate.getTime();
-    const days = (segmentEnd - segmentStart) / MS_PER_DAY;
+  pending.forEach(iso => {
+    const dueTs = isoToDate(iso).getTime();
+    const segmentEnd = Math.max(dueTs, segmentStart);
+    const days = wholeDaysBetween(segmentStart, segmentEnd);
     if (days > 0 && member.proUnpaidCycles.length > 0) {
       member.proPenaltyBalance += ps.penaltyPerDay * member.proUnpaidCycles.length * days;
     }
 
-
+    let dueAmount = ps.amortAmount;
     if (member.proAdvanceCredits.length > 0) {
-      member.proAdvanceCredits.shift();
-    } else {
-      member.proUnpaidCycles.push({ dueDate: dateToISO(dueDate), amount: ps.amortAmount });
+      const credit = member.proAdvanceCredits.shift();
+      dueAmount -= credit.amount;
     }
+    if (dueAmount > 0.0001) {
+      member.proUnpaidCycles.push({ dueDate: iso, amount: dueAmount });
+    }
+
+    member.proProcessedDues.push(iso);
     segmentStart = segmentEnd;
   });
 
-  const finalDays = (now - segmentStart) / MS_PER_DAY;
+  const finalDays = wholeDaysBetween(segmentStart, now);
   if (finalDays > 0 && member.proUnpaidCycles.length > 0) {
     member.proPenaltyBalance += ps.penaltyPerDay * member.proUnpaidCycles.length * finalDays;
   }
 
   member.proLastSyncTs = now;
 }
-
 
 function applyProPayment(member, paymentAmount, now) {
   let remaining = paymentAmount;
@@ -3556,8 +3730,16 @@ function applyProPayment(member, paymentAmount, now) {
 
   if (remaining > 0) {
     if (!Array.isArray(member.proAdvanceCredits)) member.proAdvanceCredits = [];
-    member.proAdvanceCredits.push({ amount: remaining, paidAt: now || Date.now() });
+    const unit = (db.proSettings && db.proSettings.amortAmount) ? db.proSettings.amortAmount : remaining;
     advancePaid = remaining;
+    const ts = now || Date.now();
+    while (unit > 0 && remaining >= unit - 0.0001) {
+      member.proAdvanceCredits.push({ amount: unit, paidAt: ts });
+      remaining -= unit;
+    }
+    if (remaining > 0.0001) {
+      member.proAdvanceCredits.push({ amount: remaining, paidAt: ts });
+    }
     remaining = 0;
   }
 
@@ -3604,6 +3786,22 @@ function getNextGlobalScheduleDate(now) {
   advancePassedScheduleDates(now);
   const sorted = [...db.proSettings.scheduleDates].map(isoToDate).sort((a,b) => a - b);
   return sorted[0] || null;
+}
+
+function getNextNDueDates(n) {
+  const ps = db.proSettings;
+  if (!ps || !Array.isArray(ps.scheduleDates) || ps.scheduleDates.length === 0 || n <= 0) return [];
+  let slots = ps.scheduleDates.map(iso => isoToDate(iso));
+  const result = [];
+  for (let i = 0; i < n; i++) {
+    let minIdx = 0;
+    for (let j = 1; j < slots.length; j++) {
+      if (slots[j] < slots[minIdx]) minIdx = j;
+    }
+    result.push(new Date(slots[minIdx]));
+    slots[minIdx] = isoToDate(addOneMonthISO(dateToISO(slots[minIdx])));
+  }
+  return result;
 }
 
 function formatShortDate(date) {
@@ -3666,6 +3864,114 @@ function claimHandlerFee() {
 
 function showDisclaimer() {
   document.getElementById('modal-disclaimer').style.display = 'flex';
+}
+
+function showDisclaimer() {
+  document.getElementById('modal-disclaimer').style.display = 'flex';
+}
+
+function openPolicyModal() {
+  document.getElementById('policy-modal-body').innerHTML = buildPolicyContent();
+  document.getElementById('modal-policy').style.display = 'flex';
+}
+
+function buildPolicyContent() {
+  const rateText = db.interestRate !== null ? `${db.interestRate}% per month` : 'Not yet set by the handler';
+  let html = `<div class="pixel-icon">📜</div>`;
+
+
+  html += `
+    <div class="section-title">🏦 LOAN &amp; INTEREST POLICY</div>
+    <div style="font-family:'VT323',monospace;font-size:17px;line-height:1.6;color:var(--black);margin-bottom:14px;">
+      • Monthly interest rate: <strong>${rateText}</strong><br>
+      • Interest is <strong>simple interest only</strong> — it does NOT compound.<br>
+      • A fixed interest amount (principal × rate) is added every 30 days a loan stays unpaid.<br>
+      • Payments are applied to <strong>interest first</strong>, then to the remaining principal.<br>
+      • Every time interest is collected from a loan payment, it is split <strong>equally</strong> among all contributing members (plus the handler).<br>
+      • A member cannot take a new loan while an existing loan is still active.
+    </div>
+  `;
+
+  if (!db.proMode) {
+
+    html += `
+      <div class="alert-info" style="margin-bottom:14px;">
+        This Bubu is currently running in <strong>SIMPLE MODE</strong>.
+      </div>
+      <div class="section-title">💰 CONTRIBUTION POLICY (SIMPLE MODE)</div>
+      <div style="font-family:'VT323',monospace;font-size:17px;line-height:1.6;color:var(--black);margin-bottom:14px;">
+        • Members may contribute <strong>any amount, at any time</strong> — there is no fixed schedule.<br>
+        • There is <strong>NO penalty</strong> for late, small, or missed contributions.<br>
+        • There is <strong>NO fixed release date</strong> — funds may be released anytime, as long as the member has no active loan.<br>
+        • Payout = total contributions + the member's share of interest collected.
+      </div>
+      <div class="alert-banner">
+        ✅ SIMPLE MODE = FLEXIBLE.<br>No schedules, no penalties. Just contribute and settle loans whenever able.
+      </div>
+    `;
+  } else {
+
+    const ps = db.proSettings || {};
+    const freqLabel = ps.frequency === 1 ? 'ONCE a month' : ps.frequency === 2 ? 'TWICE a month' : 'THREE TIMES a month';
+    const schedDates = (ps.scheduleDates || [])
+      .map(iso => { const d = isoToDate(iso); return d ? formatShortDate(d) : iso; })
+      .join(' / ');
+    const amort = ps.amortAmount || 0;
+    const penalty = ps.penaltyPerDay || 0;
+    const releaseDateText = ps.releaseDate
+      ? (() => { const d = isoToDate(ps.releaseDate); return `${formatShortDate(d)}, ${d.getFullYear()}`; })()
+      : null;
+
+    html += `
+      <div class="alert-orange" style="margin-bottom:14px;">
+        This Bubu is currently running in <strong>💜 PRO MODE</strong>. Strict schedules and penalties apply!
+      </div>
+
+      <div class="section-title">📅 PAYMENT SCHEDULE (PRO MODE)</div>
+      <div style="font-family:'VT323',monospace;font-size:17px;line-height:1.6;color:var(--black);margin-bottom:14px;">
+        • Payment frequency: <strong>${freqLabel}</strong><br>
+        • Due date(s): <strong>${schedDates || '—'}</strong> (auto-advances by 1 month once passed)<br>
+        • Required amount per due date: <strong>${fmt(amort)}</strong><br>
+        • Members must pay on or before each due date to avoid penalties.
+      </div>
+
+      <div class="section-title">⚠️ LATE PENALTY POLICY</div>
+      <div style="font-family:'VT323',monospace;font-size:17px;line-height:1.6;color:var(--black);margin-bottom:14px;">
+        • A missed due date becomes an <strong>unpaid cycle</strong>.<br>
+        • A penalty of <strong>${fmt(penalty)} per day</strong> is charged for EACH unpaid cycle, every day it remains unpaid.<br>
+        • Penalties grow faster the more cycles pile up (penalty scales with the number of unpaid cycles).<br>
+        • Penalty amounts collected are distributed as interest to contributing members and the handler.<br>
+        • Payments settle penalties first, then unpaid amortization cycles.
+      </div>
+
+      <div class="section-title">🗓️ RELEASE DATE POLICY</div>
+      <div style="font-family:'VT323',monospace;font-size:17px;line-height:1.6;color:var(--black);margin-bottom:14px;">
+        ${releaseDateText ? `
+        • Scheduled release date: <strong>${releaseDateText}</strong><br>
+        • Releasing <strong>ON or AFTER</strong> this date: member receives <strong>100%</strong> of their earned interest share.<br>
+        • Releasing <strong>BEFORE</strong> this date (early release): member receives only <strong>20%</strong> of their interest share.<br>
+        • The remaining <strong>80%</strong> is forfeited and equally redistributed to the other contributing members and the handler.<br>
+        • The member's original contribution amount is always returned in full — only the interest share is affected by early release.
+        ` : `• No release date has been set by the handler — releases are currently unrestricted.`}
+      </div>
+
+      <div class="alert-banner">
+        🚫 WHAT MEMBERS SHOULD AVOID IN PRO MODE:<br><br>
+        ✖ Missing a payment due date (triggers daily penalties)<br>
+        ✖ Letting multiple cycles pile up unpaid (penalties multiply per cycle)<br>
+        ✖ Releasing funds before the scheduled release date (forfeits 80% of interest share)<br>
+        ✖ Ignoring "LATE / DELAYED" status shown on your account
+      </div>
+    `;
+  }
+
+  html += `
+    <div class="alert-info" style="margin-top:4px;">
+      This policy reflects the current settings configured by your Bubu Handler. If settings change, this policy updates automatically.
+    </div>
+  `;
+
+  return html;
 }
 
 
@@ -3812,6 +4118,7 @@ function doRestoreFinal() {
     if (typeof m.proPenaltyBalance !== 'number') m.proPenaltyBalance = 0;
     if (typeof m.proLastSyncTs !== 'number') m.proLastSyncTs = 0;
     if (!Array.isArray(m.proAdvanceCredits)) m.proAdvanceCredits = [];
+    if (!Array.isArray(m.proProcessedDues)) m.proProcessedDues = [];
   });
 
 
@@ -4136,11 +4443,23 @@ function refreshBubuCodeDisplay() {
 }
 
 function generateBubuCode() {
-  retroConfirm('🔁 GENERATE NEW CODE', 'This creates a new Bubu Code and<br>immediately revokes the old one.<br>Continue?', '⚠️', () => {
+  retroConfirm('🔁 GENERATE NEW CODE', 'This creates a new Bubu Code and<br>immediately revokes the old one.<br>All members using the old code will<br>be logged out and asked for the new one.<br><br>Continue?', '⚠️', async () => {
+    const oldCode = db.bubuCode;
     db.bubuCode = genBubuCode();
     saveDB();
     refreshBubuCodeDisplay();
-    retroAlert('✅ CODE GENERATED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>Remember to tap SYNC NOW so it goes live.`, '🔁');
+
+    if (oldCode) {
+      try {
+        await waitForAuth();
+        const { fbDb, doc, deleteDoc } = window.__bubuFirebase;
+        await deleteDoc(doc(fbDb, 'codes', oldCode));
+      } catch (err) {
+        console.error('Failed to revoke old code:', err);
+      }
+    }
+
+    retroAlert('✅ CODE GENERATED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>Remember to tap SYNC NOW so it goes live.<br><br>The old code has been revoked — members using it will need the new one.`, '🔁');
   });
 }
 
@@ -4196,6 +4515,19 @@ async function submitBubuCode() {
   await memberFetchByCode(code, false);
 }
 
+function openReenterCodeModal() {
+  document.getElementById('input-bubu-code').value = '';
+  document.getElementById('bubu-code-error').textContent = '';
+  document.getElementById('cancel-code-btn').style.display = 'block';
+  document.getElementById('member-code-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('input-bubu-code').focus(), 100);
+}
+
+function closeReenterCodeModal() {
+  document.getElementById('cancel-code-btn').style.display = 'none';
+  document.getElementById('member-code-overlay').style.display = 'none';
+}
+
 async function memberFetchByCode(code, silent) {
   try {
     await waitForAuth();
@@ -4203,13 +4535,19 @@ async function memberFetchByCode(code, silent) {
 
     const codeSnap = await getDoc(doc(fbDb, 'codes', code));
     if (!codeSnap.exists()) {
-      throw { isInvalidCode: true, message: 'This Bubu Code is invalid or was revoked.' };
+      throw {
+        isInvalidCode: true,
+        message: '🚫 Your Bubu Code was revoked. The handler generated a new one — please ask your handler for the new code in their SETTINGS, then enter it below.'
+      };
     }
     const handlerId = codeSnap.data().handlerId;
 
     const handlerSnap = await getDoc(doc(fbDb, 'handlers', handlerId));
     if (!handlerSnap.exists()) {
-      throw { isInvalidCode: true, message: 'Handler data not found. The code may have been revoked.' };
+      throw {
+        isInvalidCode: true,
+        message: '🚫 Your Bubu Code was revoked. Please ask your handler for the new code in their SETTINGS, then enter it below.'
+      };
     }
 
     db = handlerSnap.data().data;
@@ -4223,7 +4561,14 @@ async function memberFetchByCode(code, silent) {
     if (!silent) showInterestToast(['✅ Connected!', 'Data loaded successfully']);
   } catch (err) {
     console.error('Fetch by code failed:', err);
+
+    if (err.isInvalidCode) {
+      localStorage.removeItem(MEMBER_CODE_KEY);
+      memberBubuCode = null;
+    }
+
     document.getElementById('member-code-overlay').style.display = 'flex';
+    document.getElementById('cancel-code-btn').style.display = 'none';
     const errEl = document.getElementById('bubu-code-error');
     errEl.textContent = err.isInvalidCode
       ? (err.message || 'Invalid code. Please re-enter.')
