@@ -3159,7 +3159,7 @@ function addContributionFinal() {
     m.lastReleaseDate = null;
   }
 
-  m.totalContributed += pendingContribAmount;
+  m.totalContributed += (pendingContribAmount - penaltyDistributed);
   pushMemberEntry(m, {
     type: 'contribution',
     amount: pendingContribAmount,
