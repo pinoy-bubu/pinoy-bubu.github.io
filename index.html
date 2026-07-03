@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="BUBU">
 <title>Pinoy-BUBU</title>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -1619,6 +1620,25 @@ body.bubu-view-only #main {
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-member-email" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📧 MEMBER EMAIL</span>
+      <button class="btn btn-red btn-sm" onclick="skipMemberEmail()">✖</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-message" style="font-size:16px;padding:8px 0;" id="member-email-prompt-msg"></div>
+      <div class="form-group">
+        <label class="form-label">EMAIL ADDRESS</label>
+        <input class="form-input" id="input-member-email" type="email" placeholder="member@gmail.com" onkeydown="if(event.key==='Enter') saveMemberEmail()">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red btn-sm" onclick="skipMemberEmail()">SKIP FOR NOW</button>
+      <button class="btn btn-green" onclick="saveMemberEmail()">💾 SAVE</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay member-detail-modal" id="modal-member-detail" style="display:none;">
   <div class="modal" style="max-width:500px;">
@@ -1629,7 +1649,8 @@ body.bubu-view-only #main {
       </div>
       <button class="btn btn-red btn-sm" style="flex-shrink:0;" onclick="closeModal('modal-member-detail')">✖</button>
     </div>
-   <div class="modal-body">
+      <div class="modal-body">
+      <div id="d-member-email-display" style="display:none;font-family:'VT323',monospace;font-size:15px;color:var(--wood-darker);text-align:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--wood);"></div>
       <div id="d-release-date-display" style="display:none;font-family:'VT323',monospace;font-size:15px;color:var(--wood-darker);text-align:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--wood);"></div>
       <div class="detail-info-grid">
         <div class="detail-card">
@@ -2066,6 +2087,67 @@ body.bubu-view-only #main {
       <hr class="divider">
       <div class="toggle-wrap">
         <div>
+          <div class="toggle-label">📧 RECEIPT SYSTEM</div>
+          <div class="toggle-sub">Auto-email receipts to members</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-receipt-mode" onchange="onReceiptModeToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div id="receipt-settings-panel" class="pro-settings-panel" style="display:none;">
+
+        <div style="margin-bottom:12px;">
+          <button class="btn btn-sky btn-sm" style="width:100%;" onclick="toggleEmailJSGuide()" id="emailjs-guide-toggle-btn">❓ HOW DO I GET THESE? (TAP TO SHOW STEPS)</button>
+        </div>
+        <div id="emailjs-guide-box" style="display:none;background:var(--cream);border:2px solid var(--black);box-shadow:3px 3px 0 var(--black);padding:14px;margin-bottom:14px;font-family:'VT323',monospace;font-size:15px;color:var(--black);line-height:1.6;">
+          <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--wood-darker);margin-bottom:10px;">📋 ONE-TIME SETUP (5 MIN, FREE)</div>
+          <strong>1.</strong> Tap "OPEN EMAILJS.COM" below → Sign Up (no card needed).<br>
+          <strong>2.</strong> Go to <em>Email Services → Add New Service → Gmail</em> → connect the Gmail you want receipts sent from → copy the <strong>Service ID</strong>.<br>
+          <strong>3.</strong> Go to <em>Email Templates → Create New</em> → click <em>"Edit Content"</em> → choose <em>Code Editor</em> → tap "COPY TEMPLATE" below and paste it in → set <em>To Email</em> = <code>{{to_email}}</code>, <em>Subject</em> = <code>{{receipt_title}} - {{member_name}}</code>, <em>Reply To</em> = <code>{{reply_to}}</code> → Save → copy the <strong>Template ID</strong>.<br>
+          <strong>4.</strong> Go to <em>Account → General</em> → copy your <strong>Public Key</strong>.<br>
+          <strong>5.</strong> Paste all 3 into the fields below and save each section.<br><br>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="btn btn-gold btn-sm" onclick="window.open('https://www.emailjs.com','_blank')">🌐 OPEN EMAILJS.COM</button>
+            <button class="btn btn-green btn-sm" onclick="copyEmailTemplate()">📋 COPY TEMPLATE</button>
+          </div>
+          <div style="font-size:12px;color:var(--wood-dark);margin-top:8px;text-align:center;">Free plan = 200 emails/month per account. Each handler needs their own account — it does not use anyone else's quota.</div>
+        </div>
+
+        <div class="section-title">📤 SENDER EMAIL (YOUR GMAIL)</div>
+        <div id="receipt-sender-display" style="display:none;align-items:center;justify-content:space-between;background:var(--sky);border:2px solid var(--black);box-shadow:2px 2px 0 var(--black);padding:10px 12px;margin-bottom:10px;">
+          <span id="receipt-sender-email-text" style="font-family:'VT323',monospace;font-size:17px;"></span>
+          <button class="btn btn-gold btn-sm" onclick="editSenderEmail()">✏️ EDIT</button>
+        </div>
+        <div class="form-group" id="receipt-sender-input-wrap">
+          <input class="form-input" id="input-sender-email" type="email" placeholder="yourname@gmail.com">
+        </div>
+        <button class="btn btn-green" style="width:100%;margin-bottom:14px;" id="btn-save-sender-email" onclick="saveSenderEmail()">💾 SAVE SENDER EMAIL</button>
+
+        <div class="section-title">⚙️ EMAILJS CONFIGURATION</div>
+        <div class="form-group">
+          <label class="form-label">SERVICE ID</label>
+          <input class="form-input" id="input-emailjs-service" type="text" placeholder="service_xxxxxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">TEMPLATE ID</label>
+          <input class="form-input" id="input-emailjs-template" type="text" placeholder="template_xxxxxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PUBLIC KEY</label>
+          <input class="form-input" id="input-emailjs-publickey" type="text" placeholder="your public key">
+        </div>
+        <button class="btn btn-green" style="width:100%;" onclick="saveEmailJSConfig()">💾 SAVE EMAILJS CONFIG</button>
+
+        <div class="alert-info" style="margin-top:12px;">
+          Receipts are sent automatically the moment a contribution, loan, loan payment, or release is confirmed — no manual step needed. A member only receives a receipt if their email is saved on their profile.
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="toggle-wrap">
+        <div>
           <div class="toggle-label">🔗 MEMBER SHARING</div>
           <div class="toggle-sub">Cloud Sync — let members view data</div>
         </div>
@@ -2249,6 +2331,9 @@ let db = {
   interestRate: null,
   members: [],
   history: [],
+  receiptEnabled: false,
+  receiptSenderEmail: null,
+  emailjsConfig: { serviceId: '', templateId: '', publicKey: '' },
   totalLoaned: 0,
   totalReleased: 0,
   totalInterestCollected: 0,
@@ -2299,6 +2384,9 @@ function loadDB() {
   if (typeof db.proMode !== 'boolean') db.proMode = false;
   if (!db.proSettings) db.proSettings = { frequency: 1, scheduleDates: [todayISO()], amortAmount: 0, penaltyPerDay: 0 };
   if (typeof db.proPassword === 'undefined') db.proPassword = null;
+  if (typeof db.receiptEnabled !== 'boolean') db.receiptEnabled = false;
+  if (typeof db.receiptSenderEmail === 'undefined') db.receiptSenderEmail = null;
+  if (!db.emailjsConfig) db.emailjsConfig = { serviceId: '', templateId: '', publicKey: '' };
   migrateScheduleDates();
   migrateMembers();
   (db.members || []).forEach(m => rememberMemberName(m.name));
@@ -2441,6 +2529,7 @@ function migrateMembers() {
 
     if (typeof m.proPenaltyDays !== 'number') m.proPenaltyDays = 0;
     if (typeof m.proLastPaidTs !== 'number') m.proLastPaidTs = 0;
+    if (typeof m.email === 'undefined') m.email = null;
 
     if (!Array.isArray(m.proUnpaidCycles)) m.proUnpaidCycles = [];
     if (typeof m.proPenaltyBalance !== 'number') m.proPenaltyBalance = 0;
@@ -2880,6 +2969,7 @@ function addMemberFinal() {
     proProcessedDues: db.proMode ? [...(db.proSettings.scheduleHistory || [])] : [],
     firstContribDate: null,
     lastReleaseDate: null,
+    email: null,
   };
   db.members.push(member);
   rememberMemberName(name);
@@ -2892,8 +2982,44 @@ function addMemberFinal() {
 
 function openMemberDetail(id) {
   activeMemberId = id;
+  const m = getMember(id);
+  if (db.receiptEnabled && m && !m.email) {
+    document.getElementById('member-email-prompt-msg').innerHTML =
+      `No email saved for<br><strong>${m.name}</strong><br><br>Enter their email to receive<br>transaction receipts.`;
+    document.getElementById('input-member-email').value = '';
+    document.getElementById('modal-member-email').style.display = 'flex';
+    setTimeout(() => document.getElementById('input-member-email').focus(), 100);
+    return;
+  }
   refreshMemberDetail();
   document.getElementById('modal-member-detail').style.display = 'flex';
+}
+
+function saveMemberEmail() {
+  const val = document.getElementById('input-member-email').value.trim();
+  if (!val || !val.includes('@')) { retroAlert('⚠️ INVALID', 'Enter a valid email address!', '⚠️'); return; }
+  const m = getMember(activeMemberId);
+  if (!m) return;
+  m.email = val;
+  saveDB();
+  closeModal('modal-member-email');
+  refreshMemberDetail();
+  document.getElementById('modal-member-detail').style.display = 'flex';
+}
+
+function skipMemberEmail() {
+  closeModal('modal-member-email');
+  refreshMemberDetail();
+  document.getElementById('modal-member-detail').style.display = 'flex';
+}
+
+function editMemberEmail() {
+  const m = getMember(activeMemberId);
+  if (!m) return;
+  document.getElementById('member-email-prompt-msg').innerHTML = `Update email for<br><strong>${m.name}</strong>`;
+  document.getElementById('input-member-email').value = m.email || '';
+  document.getElementById('modal-member-email').style.display = 'flex';
+  setTimeout(() => document.getElementById('input-member-email').focus(), 100);
 }
 
 function refreshMemberDetail() {
@@ -2902,6 +3028,15 @@ function refreshMemberDetail() {
   const now = Date.now();
 
   document.getElementById('detail-name').textContent = m.name;
+
+  const emailDisplayEl = document.getElementById('d-member-email-display');
+  if (db.receiptEnabled) {
+    emailDisplayEl.style.display = 'block';
+    emailDisplayEl.innerHTML = `📧 Email Address: <strong>${m.email || '— not set —'}</strong> ` +
+      `<button class="btn btn-gold btn-sm" style="margin-left:6px;padding:3px 6px;font-size:6px;" onclick="editMemberEmail()">✏️ EDIT</button>`;
+  } else {
+    emailDisplayEl.style.display = 'none';
+  }
 
   const releaseDateEl = document.getElementById('d-release-date-display');
   if (db.proMode && db.proSettings && db.proSettings.releaseDate) {
@@ -3170,6 +3305,12 @@ function addContributionFinal() {
   m.paymentCount += 1;
   addHistory('💰', 'Contribution Added', `${m.name} contributed ${fmt(pendingContribAmount)}${penaltyDistributed > 0 ? ` (incl. ${fmt(penaltyDistributed)} penalty)` : ''}${cyclesClearedNote}`);
   saveDB();
+  sendReceiptEmail('CONTRIBUTION PAYMENT RECEIPT', m, [
+    ['Amount Paid', fmt(pendingContribAmount)],
+    ['Penalty Included', penaltyDistributed > 0 ? fmt(penaltyDistributed) : '—'],
+    ['New Contribution Balance', fmt(m.totalContributed)],
+    ['Total Payments Made', m.paymentCount],
+  ]);
   closeModal('modal-confirm-contribution');
   refreshMemberDetail();
   renderMembers();
@@ -3265,6 +3406,12 @@ function addLoanFinal() {
   const firstMonthInterest = val * db.interestRate / 100;
   addHistory('🏦', 'Loan Made', `${m.name} loaned ${fmt(val)} @ ${db.interestRate}%/month (simple) — ${fmt(firstMonthInterest)} interest in month 1`);
   saveDB();
+  sendReceiptEmail('LOAN RECEIPT', m, [
+    ['Loan Principal', fmt(val)],
+    ['Monthly Interest Rate', db.interestRate + '%'],
+    ['Month 1 Interest', fmt(firstMonthInterest)],
+    ['Loan Release Date', formatDate(m.loanStartDate)],
+  ]);
   closeModal('modal-confirm-loan');
   refreshMemberDetail();
   renderMembers();
@@ -3342,18 +3489,18 @@ function addLoanPaymentFinal() {
   const now = Date.now();
   const alloc = allocatePayment(m, val, now);
 
-  // Apply principal reduction
+
   m.loanBalance = Math.max(0, m.loanBalance - alloc.principalPaid);
   m.totalLoanPaid += val;
   m.paymentCount += 1;
 
-  // Track how much interest has been collected from this borrower
+
   m.loanAccruedInterest = (m.loanAccruedInterest || 0) + alloc.interestPaid;
 
-  // Reduce outstanding principal tracker
+
   db.totalLoaned = Math.max(0, db.totalLoaned - alloc.principalPaid);
 
-  // Distribute interest equally to all contributing members
+
   let distributionNote = '';
   if (alloc.interestPaid > 0) {
     const shares = distributeInterest(alloc.interestPaid);
@@ -3377,13 +3524,12 @@ function addLoanPaymentFinal() {
     remaining: m.loanBalance
   });
 
-  // FIX 3: On full payoff, clear ALL loan fields including totalLoanPaid
   if (m.loanBalance <= 0) {
     m.loanBalance = 0;
-    m.loanAmount = 0;           // clear original loan amount
-    m.loanStartDate = null;     // clear start date
-    m.loanAccruedInterest = 0;  // reset collected interest tracker
-    m.totalLoanPaid = 0;        // clear paid display since loan is gone
+    m.loanAmount = 0;           
+    m.loanStartDate = null;   
+    m.loanAccruedInterest = 0;  
+    m.totalLoanPaid = 0;        
     addHistory('✅', 'Loan Fully Paid!', `${m.name} fully paid their loan!${distributionNote}`);
     showInterestToast([`✅ Loan fully paid!`, `${m.name}'s loan is now CLEAR`]);
   } else {
@@ -3391,6 +3537,12 @@ function addLoanPaymentFinal() {
   }
 
   saveDB();
+  sendReceiptEmail('LOAN PAYMENT RECEIPT', m, [
+    ['Payment Amount', fmt(val)],
+    ['Interest Paid', fmt(alloc.interestPaid)],
+    ['Principal Paid', fmt(alloc.principalPaid)],
+    ['Remaining Balance', fmt(m.loanBalance)],
+  ]);
   closeModal('modal-confirm-loan-payment');
   refreshMemberDetail();
   renderMembers();
@@ -3479,6 +3631,12 @@ function releaseFinal() {
 
   addHistory('📤', 'Money Released', `${m.name} received ${fmt(totalReceivable)} (incl. ${fmt(memberPortion)} interest share)${!info.onSchedule ? ' — EARLY RELEASE' : ''}${redistributeNote}`);
   saveDB();
+  sendReceiptEmail('RELEASE RECEIPT', m, [
+    ['Contribution Released', fmt(totalReceivable - memberPortion)],
+    ['Interest Share', fmt(memberPortion)],
+    ['Forfeited (Early Release)', forfeited > 0 ? fmt(forfeited) : '—'],
+    ['Total Payout', fmt(totalReceivable)],
+  ]);
   closeModal('modal-confirm-release');
   pendingReleaseInfo = null;
   refreshMemberDetail();
@@ -3558,6 +3716,14 @@ function openSettings() {
   document.getElementById('input-release-date').value = ps.releaseDate || '';
   renderFreqButtons(ps.frequency || 1);
   renderScheduleSlots(ps.frequency || 1, ps.scheduleDates || [todayISO()]);
+
+  document.getElementById('toggle-receipt-mode').checked = db.receiptEnabled || false;
+  document.getElementById('receipt-settings-panel').style.display = db.receiptEnabled ? 'block' : 'none';
+  renderReceiptSenderUI();
+  document.getElementById('input-emailjs-service').value = (db.emailjsConfig && db.emailjsConfig.serviceId) || '';
+  document.getElementById('input-emailjs-template').value = (db.emailjsConfig && db.emailjsConfig.templateId) || '';
+  document.getElementById('input-emailjs-publickey').value = (db.emailjsConfig && db.emailjsConfig.publicKey) || '';
+
   document.getElementById('modal-settings').style.display = 'flex';
 }
 
@@ -3627,6 +3793,181 @@ function onProModeToggle() {
       document.getElementById('pro-settings-panel').style.display = 'none';
     }
   }
+}
+
+function onReceiptModeToggle() {
+  const toggle = document.getElementById('toggle-receipt-mode');
+  const panel = document.getElementById('receipt-settings-panel');
+  const turningOn = toggle.checked;
+  toggle.checked = !turningOn; // hold until password confirms
+
+  if (!db.proPassword) {
+    toggle.checked = false;
+    panel.style.display = 'none';
+    retroAlert('🔐 PASSWORD REQUIRED', 'You need to set up a Pro Mode<br>password first before enabling<br>the Receipt system.<br><br>Turn on PRO MODE above to<br>create a password.', '⚠️');
+    return;
+  }
+
+  showPasswordModal(
+    turningOn ? '🔐 Enter your Pro Mode password<br>to enable Receipts.' : '🔐 Enter your Pro Mode password<br>to disable Receipts.',
+    (pw) => {
+      if (pw !== db.proPassword) {
+        retroAlert('❌ WRONG PASSWORD', 'Incorrect password!<br>No changes made.', '⚠️');
+        return;
+      }
+      db.receiptEnabled = turningOn;
+      toggle.checked = turningOn;
+      panel.style.display = turningOn ? 'block' : 'none';
+      addHistory('📧', turningOn ? 'Receipts Enabled' : 'Receipts Disabled', turningOn ? 'Auto-receipt emails turned on' : 'Auto-receipt emails turned off');
+      saveDB();
+      renderReceiptSenderUI();
+      if (activeMemberId) refreshMemberDetail();
+      retroAlert(turningOn ? '✅ RECEIPTS ON' : '✅ RECEIPTS OFF', turningOn ? 'Receipt system enabled!<br>Add your sender email and<br>EmailJS keys below.' : 'Receipt system disabled.', turningOn ? '📧' : 'ℹ️');
+    },
+    () => {}
+  );
+}
+
+function renderReceiptSenderUI() {
+  const displayWrap = document.getElementById('receipt-sender-display');
+  const inputWrap = document.getElementById('receipt-sender-input-wrap');
+  const saveBtn = document.getElementById('btn-save-sender-email');
+  if (db.receiptSenderEmail) {
+    displayWrap.style.display = 'flex';
+    document.getElementById('receipt-sender-email-text').textContent = db.receiptSenderEmail;
+    inputWrap.style.display = 'none';
+    saveBtn.style.display = 'none';
+  } else {
+    displayWrap.style.display = 'none';
+    inputWrap.style.display = 'block';
+    saveBtn.style.display = 'block';
+    document.getElementById('input-sender-email').value = '';
+  }
+}
+
+function saveSenderEmail() {
+  const val = document.getElementById('input-sender-email').value.trim();
+  if (!val || !val.includes('@')) { retroAlert('⚠️ INVALID', 'Enter a valid email address!', '⚠️'); return; }
+  db.receiptSenderEmail = val;
+  saveDB();
+  addHistory('📧', 'Sender Email Saved', `Receipt sender set to ${val}`);
+  renderReceiptSenderUI();
+  retroAlert('✅ SAVED', 'Sender email saved!', '✅');
+}
+
+function editSenderEmail() {
+  if (!db.proPassword) return;
+  showPasswordModal('🔐 Enter your Pro Mode password<br>to edit sender email.', (pw) => {
+    if (pw !== db.proPassword) { retroAlert('❌ WRONG PASSWORD', 'Incorrect password!', '⚠️'); return; }
+    document.getElementById('receipt-sender-display').style.display = 'none';
+    document.getElementById('receipt-sender-input-wrap').style.display = 'block';
+    document.getElementById('btn-save-sender-email').style.display = 'block';
+    document.getElementById('input-sender-email').value = db.receiptSenderEmail || '';
+  }, () => {});
+}
+
+function saveEmailJSConfig() {
+  const sid = document.getElementById('input-emailjs-service').value.trim();
+  const tid = document.getElementById('input-emailjs-template').value.trim();
+  const pk = document.getElementById('input-emailjs-publickey').value.trim();
+  if (!sid || !tid || !pk) { retroAlert('⚠️ INCOMPLETE', 'Fill in all 3 EmailJS fields!', '⚠️'); return; }
+  db.emailjsConfig = { serviceId: sid, templateId: tid, publicKey: pk };
+  saveDB();
+  retroAlert('✅ SAVED', 'EmailJS configuration saved!', '✅');
+}
+
+function toggleEmailJSGuide() {
+  const box = document.getElementById('emailjs-guide-box');
+  const btn = document.getElementById('emailjs-guide-toggle-btn');
+  const isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '❓ HOW DO I GET THESE? (TAP TO SHOW STEPS)' : '❓ HIDE STEPS';
+}
+
+const EMAILJS_TEMPLATE_HTML = `<div style="background:#f4f4f4;padding:30px 10px;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:3px solid #1A0F00;border-radius:4px;overflow:hidden;">
+          <tr>
+            <td style="background:#8B6340;padding:18px 20px;text-align:center;border-bottom:3px solid #1A0F00;">
+              <div style="font-size:20px;font-weight:bold;color:#F0C040;letter-spacing:1px;">🪙 PINOY-BUBU</div>
+              <div style="font-size:13px;color:#DEB887;margin-top:4px;">{{group_name}}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 24px 6px;text-align:center;">
+              <div style="display:inline-block;background:#D4A017;color:#1A0F00;font-weight:bold;font-size:15px;padding:8px 16px;border:2px solid #1A0F00;border-radius:3px;letter-spacing:0.5px;">{{receipt_title}}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px 24px 4px;text-align:center;color:#5C3D1E;font-size:14px;">
+              Member: <strong>{{member_name}}</strong><br>
+              Date: {{transaction_date}}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:14px 24px 20px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:2px solid #1A0F00;border-radius:3px;overflow:hidden;">
+                <tr><td style="padding:10px 14px;background:#FFF8E7;border-bottom:1px solid #DEB887;font-size:14px;color:#5C3D1E;">{{row1_label}}</td><td style="padding:10px 14px;background:#FFF8E7;border-bottom:1px solid #DEB887;font-size:14px;font-weight:bold;text-align:right;color:#1A0F00;">{{row1_value}}</td></tr>
+                <tr><td style="padding:10px 14px;background:#ffffff;border-bottom:1px solid #DEB887;font-size:14px;color:#5C3D1E;">{{row2_label}}</td><td style="padding:10px 14px;background:#ffffff;border-bottom:1px solid #DEB887;font-size:14px;font-weight:bold;text-align:right;color:#1A0F00;">{{row2_value}}</td></tr>
+                <tr><td style="padding:10px 14px;background:#FFF8E7;border-bottom:1px solid #DEB887;font-size:14px;color:#5C3D1E;">{{row3_label}}</td><td style="padding:10px 14px;background:#FFF8E7;border-bottom:1px solid #DEB887;font-size:14px;font-weight:bold;text-align:right;color:#1A0F00;">{{row3_value}}</td></tr>
+                <tr><td style="padding:10px 14px;background:#ffffff;border-bottom:1px solid #DEB887;font-size:14px;color:#5C3D1E;">{{row4_label}}</td><td style="padding:10px 14px;background:#ffffff;border-bottom:1px solid #DEB887;font-size:14px;font-weight:bold;text-align:right;color:#1A0F00;">{{row4_value}}</td></tr>
+                <tr><td style="padding:10px 14px;background:#FFF8E7;border-bottom:1px solid #DEB887;font-size:14px;color:#5C3D1E;">{{row5_label}}</td><td style="padding:10px 14px;background:#FFF8E7;border-bottom:1px solid #DEB887;font-size:14px;font-weight:bold;text-align:right;color:#1A0F00;">{{row5_value}}</td></tr>
+                <tr><td style="padding:10px 14px;background:#ffffff;font-size:14px;color:#5C3D1E;">{{row6_label}}</td><td style="padding:10px 14px;background:#ffffff;font-size:14px;font-weight:bold;text-align:right;color:#1A0F00;">{{row6_value}}</td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#5C3D1E;padding:14px 20px;text-align:center;">
+              <div style="font-size:11px;color:#DEB887;">This is an auto-generated receipt from Pinoy-BUBU.</div>
+              <div style="font-size:11px;color:#DEB887;">Sent by: {{sender_email}}</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>`;
+
+function copyEmailTemplate() {
+  navigator.clipboard.writeText(EMAILJS_TEMPLATE_HTML).then(() => {
+    showInterestToast(['📋 Template copied!', 'Paste it into EmailJS']);
+  }).catch(() => {
+    retroAlert('⚠️ COPY FAILED', 'Could not copy automatically.<br>Please select and copy the<br>template HTML manually.', '⚠️');
+  });
+}
+
+function isReceiptReady() {
+  return !!(db.receiptEnabled && db.emailjsConfig && db.emailjsConfig.serviceId &&
+    db.emailjsConfig.templateId && db.emailjsConfig.publicKey && db.receiptSenderEmail);
+}
+
+function sendReceiptEmail(title, member, pairs) {
+  if (!isReceiptReady()) return;
+  if (!member || !member.email) return;
+  if (typeof emailjs === 'undefined') { console.error('EmailJS library not loaded'); return; }
+
+  const params = {
+    to_email: member.email,
+    reply_to: db.receiptSenderEmail,
+    sender_email: db.receiptSenderEmail,
+    receipt_title: title,
+    member_name: member.name,
+    transaction_date: formatDate(Date.now()),
+    group_name: 'Pinoy-BUBU Savings Group'
+  };
+  for (let i = 0; i < 6; i++) {
+    params['row' + (i + 1) + '_label'] = pairs[i] ? pairs[i][0] : '';
+    params['row' + (i + 1) + '_value'] = pairs[i] ? pairs[i][1] : '';
+  }
+
+  emailjs.send(db.emailjsConfig.serviceId, db.emailjsConfig.templateId, params, db.emailjsConfig.publicKey)
+    .then(() => { showInterestToast(['📧 Receipt sent to', member.email]); })
+    .catch(err => {
+      console.error('EmailJS send failed:', err);
+      showInterestToast(['⚠️ Receipt failed to send', 'Check EmailJS settings']);
+    });
 }
 
 function renderFreqButtons(freq) {
@@ -4254,6 +4595,7 @@ function doRestoreFinal() {
     if (typeof m.interestEarned !== 'number') m.interestEarned = 0;
     if (typeof m.proPenaltyDays !== 'number') m.proPenaltyDays = 0;
     if (typeof m.proLastPaidTs !== 'number') m.proLastPaidTs = 0;
+    if (typeof m.email === 'undefined') m.email = null;
     if (typeof m.loanAccruedInterest !== 'number') m.loanAccruedInterest = 0;
     if (!m.loanStartDate && m.loanBalance > 0) m.loanStartDate = Date.now();
     if ((!m.loanAmount || m.loanAmount <= 0) && m.loanBalance > 0) m.loanAmount = m.loanBalance;
