@@ -3966,7 +3966,8 @@ function sendReceiptEmail(title, member, pairs) {
     .then(() => { showInterestToast(['📧 Receipt sent to', member.email]); })
     .catch(err => {
       console.error('EmailJS send failed:', err);
-      showInterestToast(['⚠️ Receipt failed to send', 'Check EmailJS settings']);
+      const detail = (err && (err.text || err.message)) ? (err.text || err.message) : JSON.stringify(err);
+      retroAlert('⚠️ RECEIPT ERROR', `Status: ${err.status || '?'}<br><br>${detail}`, '⚠️');
     });
 }
 
