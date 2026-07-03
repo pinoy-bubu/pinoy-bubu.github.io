@@ -3962,7 +3962,7 @@ function sendReceiptEmail(title, member, pairs) {
     params['row' + (i + 1) + '_value'] = pairs[i] ? pairs[i][1] : '';
   }
 
-  emailjs.send(db.emailjsConfig.serviceId, db.emailjsConfig.templateId, params, db.emailjsConfig.publicKey)
+  emailjs.send(db.emailjsConfig.serviceId, db.emailjsConfig.templateId, params, { publicKey: db.emailjsConfig.publicKey })
     .then(() => { showInterestToast(['📧 Receipt sent to', member.email]); })
     .catch(err => {
       console.error('EmailJS send failed:', err);
