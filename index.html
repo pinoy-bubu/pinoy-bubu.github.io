@@ -449,6 +449,8 @@
   .form-input:focus { background: var(--white); border-color: var(--sky-deeper); }
 
   .member-detail-modal .modal { max-width: 500px; }
+  
+#modal-member-email { z-index: 210; }
 
   .detail-info-grid {
     display: grid;
@@ -3016,6 +3018,7 @@ function skipMemberEmail() {
 function editMemberEmail() {
   const m = getMember(activeMemberId);
   if (!m) return;
+  document.getElementById('modal-member-detail').style.display = 'none'; // NEW: hide the detail modal so it doesn't stack on top
   document.getElementById('member-email-prompt-msg').innerHTML = `Update email for<br><strong>${m.name}</strong>`;
   document.getElementById('input-member-email').value = m.email || '';
   document.getElementById('modal-member-email').style.display = 'flex';
