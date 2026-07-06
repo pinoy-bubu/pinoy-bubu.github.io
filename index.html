@@ -587,7 +587,7 @@
   }
   .entry-item:last-child { border-bottom: none; }
   .entry-item:nth-child(even) { background: rgba(135,206,235,0.15); }
-
+  .entry-type.loan-topup { background: #FFCBA4; }
   .entry-type {
     font-family: 'Press Start 2P', monospace;
     font-size: 6px;
@@ -1842,8 +1842,8 @@ body.bubu-view-only #main {
 
 <div class="modal-overlay" id="modal-loan" style="display:none;">
   <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">🏦 MAKE LOAN</span>
+   <div class="modal-header">
+      <span class="modal-title" id="loan-modal-title">🏦 MAKE LOAN</span>
       <button class="btn btn-red btn-sm" onclick="closeModal('modal-loan')">✖</button>
     </div>
     <div class="modal-body">
@@ -1874,8 +1874,8 @@ body.bubu-view-only #main {
       <div class="confirm-message" id="confirm-loan-msg"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-loan')">CANCEL</button>
-      <button class="btn btn-sky" onclick="addLoanFinal()">✅ CONFIRM LOAN</button>
+<button class="btn btn-red btn-sm" onclick="closeModal('modal-confirm-loan')">CANCEL</button>
+      <button class="btn btn-sky" id="btn-confirm-loan-action" onclick="addLoanFinal()">✅ CONFIRM LOAN</button>
     </div>
   </div>
 </div>
@@ -2549,12 +2549,13 @@ function migrateMembers() {
 function getLoanBalanceAt(member, ts) {
   if (!member.loanStartDate) return 0;
   const events = (member.entries || [])
-    .filter(e => e.ts <= ts && e.ts >= member.loanStartDate && (e.type === 'loan' || e.type === 'loan_pay'))
+    .filter(e => e.ts <= ts && e.ts >= member.loanStartDate && (e.type === 'loan' || e.type === 'loan_pay' || e.type === 'loan_topup'))
     .sort((a, b) => a.ts - b.ts);
   let balance = member.loanAmount;
   events.forEach(e => {
     if (e.type === 'loan') balance = e.amount;
     else if (e.type === 'loan_pay') balance = e.remaining;
+    else if (e.type === 'loan_topup') balance = e.newBalance;
   });
   return balance;
 }
@@ -3167,8 +3168,9 @@ function refreshMemberDetail() {
       loanStatus.textContent = `ACTIVE LOAN: ${fmt(m.loanBalance)} principal + ${fmt(accrual.accrued)} interest`;
       loanStatus.className = 'loan-status active';
     }
-    btnLoan.disabled = true;
-    btnLoan.style.opacity = '0.5';
+    btnLoan.disabled = false;
+    btnLoan.style.opacity = '1';
+    btnLoan.textContent = '➕ ADD TO LOAN';
     btnLoanPay.disabled = false;
     btnLoanPay.style.opacity = '1';
   } else {
@@ -3176,9 +3178,10 @@ function refreshMemberDetail() {
     loanStatus.className = 'loan-status clear';
     btnLoan.disabled = false;
     btnLoan.style.opacity = '1';
+    btnLoan.textContent = '🏦 MAKE LOAN';
     btnLoanPay.disabled = true;
     btnLoanPay.style.opacity = '0.5';
-  }
+  } 
 
   const entriesEl = document.getElementById('d-entries');
   entriesEl.innerHTML = '';
@@ -3190,6 +3193,7 @@ function refreshMemberDetail() {
       div.className = 'entry-item';
       let typeClass = 'contrib', typeLabel = 'CONTRIB';
       if (e.type === 'loan') { typeClass = 'loan-taken'; typeLabel = 'LOAN'; }
+      else if (e.type === 'loan_topup') { typeClass = 'loan-topup'; typeLabel = 'LOAN+'; }
       else if (e.type === 'loan_pay') { typeClass = 'loan-pay'; typeLabel = 'PAYMENT'; }
       else if (e.type === 'release') { typeClass = 'release'; typeLabel = 'RELEASE'; }
 
@@ -3205,8 +3209,10 @@ function refreshMemberDetail() {
       let balanceDetail = '';
       if (e.type === 'contribution' && typeof e.contribBalance === 'number') {
         balanceDetail = `<div class="entry-balance">Contribution Balance: ${fmt(e.contribBalance)}</div>`;
-      } else if (e.type === 'loan' && typeof e.loanBalanceAfter === 'number') {
+} else if (e.type === 'loan' && typeof e.loanBalanceAfter === 'number') {
         balanceDetail = `<div class="entry-balance">Loan Balance: ${fmt(e.loanBalanceAfter)}</div>`;
+      } else if (e.type === 'loan_topup' && typeof e.loanBalanceAfter === 'number') {
+        balanceDetail = `<div class="entry-balance">Previous: ${fmt(e.previousBalance)} → New Loan Balance: ${fmt(e.loanBalanceAfter)}</div>`;
       } else if (e.type === 'loan_pay' && typeof e.remaining === 'number') {
         balanceDetail = `<div class="entry-balance">Loan Balance: ${fmt(e.remaining)}</div>`;
       } else if (e.type === 'release') {
@@ -3322,9 +3328,9 @@ function addContributionFinal() {
 
 function openLoan() {
   const m = getMember(activeMemberId);
-  if (m.loanBalance > 0) { retroAlert('🏦 LOAN EXISTS', 'This member already has<br>an active loan!', '⚠️'); return; }
   if (db.interestRate === null) { retroAlert('⚙️ NO RATE SET', 'Interest rate not set!', '⚠️'); return; }
 
+  const isTopup = m.loanBalance > 0;
 
   let totalContrib = 0;
   db.members.forEach(mb => { totalContrib += (mb.totalContributed || 0); });
@@ -3337,10 +3343,22 @@ function openLoan() {
     return;
   }
 
-  document.getElementById('loan-info-banner').innerHTML =
-    `Monthly interest: <strong>${db.interestRate}%</strong> (simple, no compounding)<br>
-    Month 1 starts day 0 — month 2 at day 30 — and so on<br>
-    <span style="color:var(--red);font-family:'Press Start 2P',monospace;font-size:6px;">MAX LOAN: ${fmt(currentCashOnHand)} (cash on hand)</span>`;
+  document.getElementById('loan-modal-title').textContent = isTopup ? '➕ ADD TO LOAN' : '🏦 MAKE LOAN';
+
+  if (isTopup) {
+    document.getElementById('loan-info-banner').innerHTML =
+      `<strong>${m.name}</strong> already has an active loan.<br>
+      Current Principal Balance: <strong>${fmt(m.loanBalance)}</strong><br>
+      Monthly interest: <strong>${db.interestRate}%</strong> — will be recalculated on the NEW total principal.<br>
+      No new interest is charged immediately for this addition. The existing payment schedule continues as-is.<br>
+      <span style="color:var(--red);font-family:'Press Start 2P',monospace;font-size:6px;">MAX ADDITIONAL: ${fmt(currentCashOnHand)} (cash on hand)</span>`;
+  } else {
+    document.getElementById('loan-info-banner').innerHTML =
+      `Monthly interest: <strong>${db.interestRate}%</strong> (simple, no compounding)<br>
+      Month 1 starts day 0 — month 2 at day 30 — and so on<br>
+      <span style="color:var(--red);font-family:'Press Start 2P',monospace;font-size:6px;">MAX LOAN: ${fmt(currentCashOnHand)} (cash on hand)</span>`;
+  }
+
   document.getElementById('input-loan').value = '';
   document.getElementById('input-loan').max = currentCashOnHand;
   document.getElementById('loan-preview').style.display = 'none';
@@ -3350,12 +3368,30 @@ function openLoan() {
 
 function updateLoanPreview() {
   const val = parseFloat(document.getElementById('input-loan').value);
-  if (!val || val <= 0) { document.getElementById('loan-preview').style.display = 'none'; return; }
-  const monthlyInterest = val * db.interestRate / 100;
-  document.getElementById('lp-amount').textContent = val.toLocaleString('en-PH', {minimumFractionDigits:2});
-  document.getElementById('lp-rate').textContent = db.interestRate;
-  document.getElementById('lp-monthly').textContent = monthlyInterest.toLocaleString('en-PH', {minimumFractionDigits:2});
-  document.getElementById('loan-preview').style.display = 'block';
+  const preview = document.getElementById('loan-preview');
+  if (!val || val <= 0) { preview.style.display = 'none'; return; }
+
+  const m = getMember(activeMemberId);
+  const isTopup = m.loanBalance > 0;
+  const newPrincipal = isTopup ? m.loanBalance + val : val;
+  const monthlyInterest = newPrincipal * db.interestRate / 100;
+
+  preview.style.display = 'block';
+  if (isTopup) {
+    preview.innerHTML = `
+      <div>Current Principal: ₱${m.loanBalance.toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+      <div>Added Amount: ₱${val.toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+      <div><strong>New Principal: ₱${newPrincipal.toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>
+      <div>New Interest per month (${db.interestRate}%): ₱${monthlyInterest.toLocaleString('en-PH',{minimumFractionDigits:2})}/mo</div>
+      <div style="font-size:13px;color:#666;">No new interest charged now — the existing schedule continues, interest going forward is based on the new principal.</div>
+    `;
+  } else {
+    preview.innerHTML = `
+      <div>Principal: ₱${val.toLocaleString('en-PH',{minimumFractionDigits:2})}</div>
+      <div>Interest per month (${db.interestRate}%): ₱${monthlyInterest.toLocaleString('en-PH',{minimumFractionDigits:2})}/mo</div>
+      <div style="font-size:13px;color:#666;">Month 1 starts on day 0 · Month 2 at day 30 · etc.</div>
+    `;
+  }
 }
 
 function confirmLoan() {
@@ -3377,12 +3413,28 @@ function confirmLoan() {
   }
 
   pendingLoanAmount = val;
-  const monthlyInterest = val * db.interestRate / 100;
-  document.getElementById('confirm-loan-msg').innerHTML =
-    `Loan for <strong>${m.name}</strong><br><br>
-    Principal: ${fmt(val)}<br>
-    Interest per month (${db.interestRate}%): ${fmt(monthlyInterest)}<br>
-    <span style="font-size:14px;color:#888;">Month 1 interest (${fmt(monthlyInterest)}) starts on day 0. Another ${fmt(monthlyInterest)} added every 30 days.</span>`;
+  const isTopup = m.loanBalance > 0;
+  const newPrincipal = isTopup ? m.loanBalance + val : val;
+  const monthlyInterest = newPrincipal * db.interestRate / 100;
+  const confirmBtn = document.getElementById('btn-confirm-loan-action');
+
+  if (isTopup) {
+    if (confirmBtn) confirmBtn.textContent = '✅ CONFIRM ADDITION';
+    document.getElementById('confirm-loan-msg').innerHTML =
+      `Add to loan for <strong>${m.name}</strong><br><br>
+      Current Principal Balance: ${fmt(m.loanBalance)}<br>
+      Added Amount: ${fmt(val)}<br>
+      <strong>New Principal Balance: ${fmt(newPrincipal)}</strong><br><br>
+      New Interest per month (${db.interestRate}%): ${fmt(monthlyInterest)}<br>
+      <span style="font-size:14px;color:#888;">No new interest is charged immediately for this addition. The existing payment schedule continues, and interest going forward is based on the new principal.</span>`;
+  } else {
+    if (confirmBtn) confirmBtn.textContent = '✅ CONFIRM LOAN';
+    document.getElementById('confirm-loan-msg').innerHTML =
+      `Loan for <strong>${m.name}</strong><br><br>
+      Principal: ${fmt(val)}<br>
+      Interest per month (${db.interestRate}%): ${fmt(monthlyInterest)}<br>
+      <span style="font-size:14px;color:#888;">Month 1 interest (${fmt(monthlyInterest)}) starts on day 0. Another ${fmt(monthlyInterest)} added every 30 days.</span>`;
+  }
   closeModal('modal-loan');
   document.getElementById('modal-confirm-loan').style.display = 'flex';
 }
@@ -3390,41 +3442,89 @@ function confirmLoan() {
 function addLoanFinal() {
   const m = getMember(activeMemberId);
   const val = pendingLoanAmount;
+  const now = Date.now();
+  const isTopup = m.loanBalance > 0;
 
-  m.loanAmount = val;
-  m.loanBalance = val;
-  m.loanStartDate = Date.now();
-  m.loanAccruedInterest = 0;
+  if (!isTopup) {
+    // FRESH LOAN — unchanged original behavior
+    m.loanAmount = val;
+    m.loanBalance = val;
+    m.loanStartDate = now;
+    m.loanAccruedInterest = 0;
 
-  db.totalLoaned += val;
+    db.totalLoaned += val;
 
-  pushMemberEntry(m, {
-    type: 'loan',
-    amount: val,
-    ts: Date.now(),
-    monthlyRate: db.interestRate,
-    loanBalanceAfter: m.loanBalance
-  });
+    pushMemberEntry(m, {
+      type: 'loan',
+      amount: val,
+      ts: now,
+      monthlyRate: db.interestRate,
+      loanBalanceAfter: m.loanBalance
+    });
 
-  const firstMonthInterest = val * db.interestRate / 100;
-  addHistory('🏦', 'Loan Made', `${m.name} loaned ${fmt(val)} @ ${db.interestRate}%/month (simple) — ${fmt(firstMonthInterest)} interest in month 1`);
-  saveDB();
-  sendReceiptEmail('LOAN RECEIPT', m, [
-    ['Loan Principal', fmt(val)],
-    ['Monthly Interest Rate', db.interestRate + '%'],
-    ['Month 1 Interest', fmt(firstMonthInterest)],
-    ['Loan Release Date', formatDate(m.loanStartDate)],
-  ]);
-  closeModal('modal-confirm-loan');
-  refreshMemberDetail();
-  renderMembers();
+    const firstMonthInterest = val * db.interestRate / 100;
+    addHistory('🏦', 'Loan Made', `${m.name} loaned ${fmt(val)} @ ${db.interestRate}%/month (simple) — ${fmt(firstMonthInterest)} interest in month 1`);
+    saveDB();
+    sendReceiptEmail('LOAN RECEIPT', m, [
+      ['Loan Principal', fmt(val)],
+      ['Monthly Interest Rate', db.interestRate + '%'],
+      ['Month 1 Interest', fmt(firstMonthInterest)],
+      ['Loan Release Date', formatDate(m.loanStartDate)],
+    ]);
+    closeModal('modal-confirm-loan');
+    refreshMemberDetail();
+    renderMembers();
 
-  showInterestToast([
-    `🎯 Loan created for ${m.name}`,
-    `Month 1 interest: ${fmt(firstMonthInterest)}`
-  ]);
+    showInterestToast([
+      `🎯 Loan created for ${m.name}`,
+      `Month 1 interest: ${fmt(firstMonthInterest)}`
+    ]);
+
+  } else {
+    // TOP-UP — add to existing active loan
+    const oldBalance = m.loanBalance;
+    const oldOriginal = m.loanAmount || 0;
+    const newBalance = oldBalance + val;
+
+    m.loanAmount = oldOriginal + val;   // "Original Loan" grows too
+    m.loanBalance = newBalance;
+    // loanStartDate and loanAccruedInterest are NOT touched —
+    // schedule continues, no immediate interest for the addition.
+
+    db.totalLoaned += val;
+
+    pushMemberEntry(m, {
+      type: 'loan_topup',
+      amount: val,
+      addedAmount: val,
+      previousBalance: oldBalance,
+      newBalance: newBalance,
+      ts: now,
+      monthlyRate: db.interestRate,
+      loanBalanceAfter: newBalance
+    });
+
+    const newMonthlyInterest = newBalance * db.interestRate / 100;
+    addHistory('🏦', 'Loan Increased', `${m.name} added ${fmt(val)} to their loan — new principal: ${fmt(newBalance)} @ ${db.interestRate}%/month`);
+    saveDB();
+    sendReceiptEmail('LOAN INCREASE RECEIPT', m, [
+      ['Previous Principal Balance', fmt(oldBalance)],
+      ['Added Loan Amount', fmt(val)],
+      ['New Principal Balance', fmt(newBalance)],
+      ['New Original Loan Total', fmt(m.loanAmount)],
+      ['Monthly Interest Rate', db.interestRate + '%'],
+      ['Interest If Unpaid Next 30 Days', fmt(newMonthlyInterest)],
+    ]);
+    closeModal('modal-confirm-loan');
+    refreshMemberDetail();
+    renderMembers();
+
+    showInterestToast([
+      `🏦 Loan increased for ${m.name}`,
+      `New principal: ${fmt(newBalance)}`
+    ]);
+  }
 }
-
 
 function openLoanPayment() {
   const m = getMember(activeMemberId);
@@ -3649,6 +3749,16 @@ function releaseFinal() {
 
 function confirmDeleteMember() {
   const m = getMember(activeMemberId);
+
+  if (m.loanBalance > 0) {
+    retroAlert(
+      '🚫 CANNOT REMOVE',
+      `<strong>${m.name}</strong> still has an<br>unpaid loan balance of<br><strong>${fmt(m.loanBalance)}</strong>.<br><br>The member must fully pay off<br>their loan before they can<br>be removed.`,
+      '⚠️'
+    );
+    return;
+  }
+
   document.getElementById('confirm-delete-msg').innerHTML =
     `Remove member<br><br><strong>${m.name}</strong><br><br>from the system?`;
   document.getElementById('modal-confirm-delete').style.display = 'flex';
