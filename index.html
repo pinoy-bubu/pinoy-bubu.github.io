@@ -5034,19 +5034,37 @@ setInterval(() => {
   renderMembers();
 }, AUTO_REFRESH_MS);
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
-      refreshMemberDetail();
-    }
-    renderMembers();
+function resyncFromStorageAndRender() {
+  // A backgrounded/suspended tab or PWA instance can be holding an old
+  // in-memory copy of `db`. Since every mutation is saved to localStorage
+  // immediately (see saveDB() calls after each action), the storage is
+  // always the freshest source of truth. Re-read it before rendering so
+  // this stale instance can't later overwrite newer data with old data.
+  if (appRole === 'handler') {
+    loadDB();
   }
-});
-window.addEventListener('focus', () => {
   if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
     refreshMemberDetail();
   }
   renderMembers();
+  updateOverview();
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    resyncFromStorageAndRender();
+  }
+});
+window.addEventListener('focus', () => {
+  resyncFromStorageAndRender();
+});
+window.addEventListener('pageshow', (e) => {
+  // pageshow fires (with persisted=true) when a page is restored from the
+  // browser/PWA's back-forward cache — another point where a stale
+  // in-memory `db` could otherwise survive and later clobber newer saves.
+  if (e.persisted) {
+    resyncFromStorageAndRender();
+  }
 });
 
 
