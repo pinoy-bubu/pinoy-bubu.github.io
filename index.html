@@ -5027,6 +5027,12 @@ function showInterestToast(lines) {
 
 const AUTO_REFRESH_MS = 20 * 1000;
 setInterval(() => {
+  // Refresh from storage before mutating/saving, otherwise a stale
+  // in-memory `db` (e.g. a backgrounded tab or old PWA instance) would
+  // silently overwrite newer data saved elsewhere in the meantime.
+  if (appRole === 'handler') {
+    loadDB();
+  }
   accrueProPenalties();
   if (document.getElementById('modal-member-detail').style.display === 'flex' && activeMemberId) {
     refreshMemberDetail();
