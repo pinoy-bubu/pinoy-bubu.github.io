@@ -15,12 +15,12 @@
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyC_eFsPB-QjO_ZtsnvnHgBDCHqJUOOuqp8",
-    authDomain: "pinoy-bubu.firebaseapp.com",
-    projectId: "pinoy-bubu",
-    storageBucket: "pinoy-bubu.firebasestorage.app",
-    messagingSenderId: "906884243479",
-    appId: "1:906884243479:web:6cc43b8a57ec73c9f17c52"
+    apiKey: "AIzaSyCx8V0tdnHZPbEdZFTqg1ZqyTrG5M5MIw4",
+    authDomain: "pinoy-bubu-app.firebaseapp.com",
+    projectId: "pinoy-bubu-app",
+    storageBucket: "pinoy-bubu-app.firebasestorage.app",
+    messagingSenderId: "145620541318",
+    appId: "1:145620541318:web:145ed878381f9f57b21607"
   };
 
   const fbApp = initializeApp(firebaseConfig);
@@ -28,11 +28,16 @@
   const fbAuth = getAuth(fbApp);
 
 
-  window.__bubuFirebase = { fbDb, fbAuth, doc, getDoc, setDoc, deleteDoc };
+  window.__bubuFirebase = { fbDb, fbAuth, doc, getDoc, setDoc, deleteDoc, signInAnonymously };
 
-  signInAnonymously(fbAuth).catch(err => console.error("Anon auth failed:", err));
+  window.__bubuAuthError = null;
+  signInAnonymously(fbAuth).catch(err => {
+    console.error("Anon auth failed:", err && err.code, err && err.message, err);
+    window.__bubuAuthError = { code: (err && err.code) || '', message: (err && err.message) || String(err) };
+  });
   onAuthStateChanged(fbAuth, user => {
     window.__bubuAuthUid = user ? user.uid : null;
+    if (user) window.__bubuAuthError = null;
     document.dispatchEvent(new CustomEvent('bubu-auth-ready'));
   });
 </script>
@@ -1448,6 +1453,19 @@ body.bubu-view-only #modal-member-detail .modal-footer button:not(.btn-sky),
 body.bubu-view-only #disclaimer-btn ~ #settings-btn {
   display: none !important;
 }
+.mkey-row { display:flex; align-items:center; gap:6px; background:var(--cream); border:2px solid var(--black); box-shadow:2px 2px 0 var(--black); padding:6px 8px; margin-bottom:8px; flex-wrap:wrap; }
+.mkey-name { font-family:'VT323',monospace; font-size:18px; color:var(--wood-darker); flex:1 1 90px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mkey-code { font-family:'Press Start 2P',monospace; font-size:9px; letter-spacing:1px; color:var(--black); background:#fff; border:1px solid var(--black); padding:5px 6px; }
+.mkey-btn { font-family:'Press Start 2P',monospace; font-size:7px; padding:6px 7px; border:2px solid var(--black); background:var(--gold); cursor:pointer; box-shadow:2px 2px 0 var(--black); }
+.mkey-btn:active { transform:translate(2px,2px); box-shadow:none; }
+body.bubu-view-only #delayed-btn-wrap { display:none !important; }
+body.bubu-view-only #btn-copy-records { display:none !important; }
+body.bubu-view-only #btn-copy-paylogs { display:none !important; }
+.paylog-group-label { font-family:'Press Start 2P',monospace; font-size:8px; background:var(--wood-light); color:var(--wood-darker); border-top:1px solid var(--black); border-bottom:1px solid var(--black); padding:7px 10px; }
+.paylog-group-label:first-child { border-top:none; }
+.paylog-line { padding:6px 10px; font-family:'VT323',monospace; font-size:17px; color:var(--black); border-bottom:1px solid var(--wood-light); }
+.paylog-line:nth-child(even) { background: rgba(135,206,235,0.15); }
+body.bubu-view-only #member-search-wrap { display:none !important; }
 body.bubu-view-only #main {
   margin-top: 0;
   padding-top: 0;
@@ -1463,15 +1481,15 @@ body.bubu-view-only #main {
     <button class="role-btn handler" onclick="chooseRole('handler')">🧑‍💼 BUBU HANDLER</button>
     <div class="role-sub">Full control — manage members, payments, loans, settings.</div>
     <button class="role-btn member" onclick="chooseRole('member')">👁️ BUBU MEMBER</button>
-    <div class="role-sub">View-only access using a code from your handler.</div>
+    <div class="role-sub">View-only access using your personal key from your handler.</div>
   </div>
 </div>
 
 
 <div id="member-code-overlay" style="display:none;">
   <div class="role-card">
-    <div class="role-title">👁️ ENTER YOUR<br>BUBU CODE</div>
-    <input class="form-input" id="input-bubu-code" type="text" maxlength="8" placeholder="e.g. AB12CD34"
+    <div class="role-title">🔑 ENTER YOUR<br>PERSONAL KEY</div>
+    <input class="form-input" id="input-bubu-code" type="text" maxlength="10" placeholder="e.g. AB12CD34EF"
       style="text-align:center;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px;"
       onkeydown="if(event.key==='Enter') submitBubuCode()">
     <div id="bubu-code-error" style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--red);min-height:20px;margin-bottom:10px;"></div>
@@ -1501,7 +1519,7 @@ body.bubu-view-only #main {
     <div id="retro-pw-body">
       <div id="retro-pw-msg"></div>
       <div id="retro-pw-error"></div>
-      <input id="retro-pw-input" type="password" placeholder="••••••••" maxlength="30"
+      <input id="retro-pw-input" type="text" placeholder="Enter password" maxlength="30" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
         onkeydown="if(event.key==='Enter') retropwConfirm()">
     </div>
     <div id="retro-pw-footer">
@@ -1878,8 +1896,19 @@ body.bubu-view-only #main {
 
       <hr class="divider">
 
-      <div class="section-title">📋  TRANSACTION RECORD</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div class="section-title" style="margin-bottom:0;">📋  TRANSACTION RECORD</div>
+        <button class="btn btn-gold btn-sm" id="btn-copy-records" onclick="copyMemberRecords()">📋 COPY</button>
+      </div>
       <div class="entry-list" id="d-entries">
+        <div class="entry-item" style="justify-content:center;color:#999;font-size:13px;">No entries yet</div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:16px;">
+        <div class="section-title" style="margin-bottom:0;">🧾  PAYMENT LOGS</div>
+        <button class="btn btn-gold btn-sm" id="btn-copy-paylogs" onclick="copyPaymentLogs()">📋 COPY</button>
+      </div>
+      <div class="entry-list" id="d-paylogs" style="margin-top:8px;max-height:260px;">
         <div class="entry-item" style="justify-content:center;color:#999;font-size:13px;">No entries yet</div>
       </div>
     </div>
@@ -1973,9 +2002,21 @@ body.bubu-view-only #main {
 <div class="modal-body">
       <div id="pay-loan-name-tag" class="paying-loan-tag" style="display:none;"></div>
       <div class="alert-banner" id="pay-loan-banner"></div>
+      <div class="alert-info" style="margin-bottom:10px;">Fill in <strong>only what is being paid</strong>. Leave the other box empty — it will not be touched.</div>
       <div class="form-group">
-        <label class="form-label">PAYMENT AMOUNT (₱)</label>
-        <input class="form-input" id="input-loan-payment" type="number" min="1" placeholder="0.00"
+        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+          <span>💸 INTEREST PAYMENT (₱)</span>
+          <button type="button" class="mkey-btn" id="btn-max-interest" style="font-size:6px;padding:4px 6px;">MAX</button>
+        </label>
+        <input class="form-input" id="input-loan-pay-interest" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"
+          onkeydown="if(event.key==='Enter') confirmLoanPayment()">
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+          <span>🏦 PRINCIPAL PAYMENT (₱)</span>
+          <button type="button" class="mkey-btn" id="btn-max-principal" style="font-size:6px;padding:4px 6px;">MAX</button>
+        </label>
+        <input class="form-input" id="input-loan-pay-principal" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"
           onkeydown="if(event.key==='Enter') confirmLoanPayment()">
       </div>
       <div id="pay-allocation-preview" style="display:none;background:var(--sky);border:2px solid var(--black);padding:10px;font-size:14px;line-height:1.8;margin-top:8px;"></div>
@@ -2261,12 +2302,8 @@ body.bubu-view-only #main {
       </div>
 
      <div id="cloud-sync-panel" style="display:none;">
-  <div class="alert-orange">...</div>
-  <div class="bubu-code-display" id="bubu-code-display">— NO CODE YET —</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-    <button class="btn btn-gold btn-sm" onclick="generateBubuCode()">🔁 GENERATE CODE</button>
-    <button class="btn btn-wood btn-sm" onclick="copyBubuCode()">📋 COPY CODE</button>
-  </div>
+  <div class="alert-orange" style="text-align:left;">Each member has their <strong>own personal key</strong>. A member who enters their key sees the dashboard totals and <strong>only their own record</strong> — other members stay hidden. Tap SYNC NOW after any change so members see fresh data.</div>
+  <div id="member-keys-list" style="max-height:260px;overflow-y:auto;margin:10px 0 12px;"></div>
 </div>
 
 <button class="btn btn-green" style="width:100%;margin-top:8px;" onclick="syncNow()">☁️ SYNC NOW</button>
@@ -2301,7 +2338,7 @@ body.bubu-view-only #main {
         <strong>Data &amp; privacy</strong><br>
         By default, all data is stored locally on this device and is never transmitted anywhere.
         <br><br>
-        If the handler turns on <strong>Member Sharing</strong> in Settings, the app's data — including member names, balances, and loan details — is uploaded so it can be viewed by anyone holding the Bubu Code generated by the handler. Only people with that exact code can access the data, and the handler can revoke access at any time by generating a new code.
+        If the handler turns on <strong>Member Sharing</strong> in Settings, the app's data — including member names, balances, and loan details — is uploaded in a separate per-member view. Each member receives their own personal key from the handler, and that key shows only the group totals plus that member's own record — never other members' details. The handler can revoke any member's access at any time by generating a new key for them or removing them.
         <br><br>
         <strong>Use responsibly.</strong> 🙏
         <br><br>
@@ -2460,18 +2497,25 @@ let pendingInterestRate = null;
 let pendingContribAmount = null;
 let pendingLoanAmount = null;
 let pendingLoanPayAmount = null;
+let pendingLoanPayInterest = 0;
+let pendingLoanPayPrincipal = 0;
 let pendingReleaseInfo = null;
 let memberSearchTerm = '';
 let pendingRestoreData = null;
 let appRole = null;          
 let memberLastSync = null;   
-let memberBubuCode = null;   
+let memberBubuCode = null;
+let memberViewMeta = null;   // { viewerMemberId, aggregate, syncedAt } — set only in member role
+
 const ROLE_KEY = 'bubu_role_v1';
 const HANDLER_ID_KEY = 'bubu_handler_id';
 const MEMBER_CODE_KEY = 'bubu_member_code';
 
 
 function saveDB() {
+  // Members only ever hold a filtered, read-only snapshot in memory.
+  // Never let it overwrite a real handler database in localStorage.
+  if (appRole === 'member') return;
   localStorage.setItem('bubu_db_v3', JSON.stringify(db));
 }
 
@@ -2494,6 +2538,7 @@ function loadDB() {
   if (!db.emailjsConfig) db.emailjsConfig = { serviceId: '', templateId: '', publicKey: '' };
   migrateScheduleDates();
   migrateMembers();
+  ensureMemberKeys();
   (db.members || []).forEach(m => rememberMemberName(m.name));
 }
 
@@ -2520,10 +2565,36 @@ function getOrCreateHandlerId() {
 }
 
 function genBubuCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const KEY_LEN = 10;
   let out = '';
-  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  if (window.crypto && window.crypto.getRandomValues) {
+    const buf = new Uint8Array(KEY_LEN);
+    window.crypto.getRandomValues(buf);
+    for (let i = 0; i < KEY_LEN; i++) out += chars[buf[i] % chars.length];
+  } else {
+    for (let i = 0; i < KEY_LEN; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  }
   return out;
+}
+
+// Every member gets a unique personal access key. Backfills existing members.
+function genUniqueMemberKey() {
+  const used = new Set((db.members || []).map(m => m.accessKey).filter(Boolean));
+  let k;
+  do { k = genBubuCode(); } while (used.has(k));
+  return k;
+}
+
+function ensureMemberKeys() {
+  let changed = false;
+  const seen = new Set();
+  (db.members || []).forEach(m => {
+    if (!m.accessKey || seen.has(m.accessKey)) { m.accessKey = genUniqueMemberKey(); changed = true; }
+    seen.add(m.accessKey);
+  });
+  if (!Array.isArray(db.syncedKeys)) db.syncedKeys = [];
+  return changed;
 }
 
 function applyRoleUI() {
@@ -2540,7 +2611,8 @@ function applyRoleUI() {
 function updateViewOnlyBanner() {
   const el = document.getElementById('view-only-banner');
   const stamp = memberLastSync ? formatDate(memberLastSync) : '—';
-  el.innerHTML = `👁️ VIEW-ONLY MODE — Last updated: ${stamp}`;
+  const me = (memberViewMeta && db.members && db.members[0]) ? db.members[0].name : '';
+  el.innerHTML = `👁️ VIEW-ONLY MODE${me ? ' — ' + me.replace(/</g,'&lt;') : ''}<br>Handler last synced: ${stamp}`;
 }
 
 
@@ -2718,6 +2790,20 @@ function computeAccruedInterest(member, loan, now) {
   };
 }
 
+// 'interest' | 'principal' | 'both' — works for new entries (payKind) and old ones (derived).
+function getPayKind(e) {
+  if (e.payKind) return e.payKind;
+  const i = e.interestPaid || 0, p = e.principalPaid || 0;
+  if (i > 0 && p <= 0) return 'interest';
+  if (p > 0 && i <= 0) return 'principal';
+  return 'both';
+}
+function payKindLabel(e) {
+  const k = getPayKind(e);
+  return k === 'interest' ? 'Interest Payment' : k === 'principal' ? 'Principal Payment' : 'Payment';
+}
+function roundCents(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+
 function allocatePayment(member, loan, paymentAmount, now) {
   const accrual = computeAccruedInterest(member, loan, now);
   const interestOwed = accrual.accrued;
@@ -2801,14 +2887,21 @@ function addHistory(icon, title, detail) {
 
 
 function updateOverview() {
-  document.getElementById('ov-members').textContent = db.members.length;
+  const isMemberView = appRole === 'member' && memberViewMeta && memberViewMeta.aggregate;
+  const agg = isMemberView ? memberViewMeta.aggregate : null;
+
+  document.getElementById('ov-members').textContent = isMemberView ? agg.memberCount : db.members.length;
 
   let totalContrib = 0;
   db.members.forEach(m => { totalContrib += (m.totalContributed || 0); });
 
   const totalInterestShares = db.members.reduce((s, m) => s + (m.interestEarned || 0), 0);
   const handlerFee = db.handlerFee || 0;
-  const cashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0) + totalInterestShares + handlerFee);
+  // Member view: the group-wide cash figure is precomputed by the handler
+  // (the member's local db only holds their own record).
+  const cashOnHand = isMemberView
+    ? agg.cashOnHand
+    : Math.max(0, totalContrib - (db.totalLoaned || 0) + totalInterestShares + handlerFee);
   document.getElementById('ov-contributions').textContent = fmt(cashOnHand);
   document.getElementById('ov-handler-fee').textContent = fmt(db.handlerFee || 0);
   document.getElementById('ov-interest').textContent = fmt(db.totalInterestCollected || 0);
@@ -2822,6 +2915,13 @@ function updateOverview() {
       totalAccrued += computeAccruedInterest(m, l, now).accrued;
     });
   });
+  if (isMemberView) {
+    // Own loans are computed live; everyone else's is an anonymous
+    // precomputed total + future billing steps (no names, no ids).
+    const o = agg.othersAccrual || { atSync: 0, steps: [] };
+    totalAccrued += o.atSync || 0;
+    (o.steps || []).forEach(st => { if (st.ts <= now) totalAccrued += st.amt; });
+  }
   document.getElementById('ov-accrued').textContent = fmt(totalAccrued);
 
   const nextSchedEl = document.getElementById('ov-next-schedule');
@@ -3110,6 +3210,7 @@ function addMemberFinal() {
     firstContribDate: null,
     lastReleaseDate: null,
     email: null,
+    accessKey: genUniqueMemberKey(),
   };
   db.members.push(member);
   rememberMemberName(name);
@@ -3312,7 +3413,11 @@ function refreshMemberDetail() {
       div.className = 'entry-item';
       let typeClass = 'contrib', typeLabel = 'CONTRIB';
       if (e.type === 'loan') { typeClass = 'loan-taken'; typeLabel = 'LOAN' + (e.loanNumber ? ' #' + e.loanNumber : ''); }
-      else if (e.type === 'loan_pay') { typeClass = 'loan-pay'; typeLabel = 'PAYMENT' + (e.loanNumber ? ' (L' + e.loanNumber + ')' : ''); }
+      else if (e.type === 'loan_pay') {
+        typeClass = 'loan-pay';
+        const k = getPayKind(e);
+        typeLabel = (k === 'interest' ? 'INTEREST PAYMENT' : k === 'principal' ? 'PRINCIPAL PAYMENT' : 'PAYMENT') + (e.loanNumber ? ' (L' + e.loanNumber + ')' : '');
+      }
       else if (e.type === 'release') { typeClass = 'release'; typeLabel = 'RELEASE'; }
 
       const releaseDetail = (e.type === 'release' && e.interestShare)
@@ -3345,6 +3450,185 @@ function refreshMemberDetail() {
       `;
       entriesEl.appendChild(div);
     });
+  }
+  renderPaymentLogs(m);
+}
+
+// ---------- PAYMENT LOGS ----------
+// Groups a member's entries: Contribution, then Loan 1, Loan 2, ... , then Release.
+// Each group is sorted latest -> oldest. One line per action: "<date> <action> ₱amount".
+function buildPaymentLogGroups(m) {
+  const loanNoOf = e => {
+    if (e.loanNumber) return e.loanNumber;
+    const l = e.loanId ? getLoanById(m, e.loanId) : null;
+    return (l && l.loanNumber) || 0;
+  };
+  const contribs = [], releases = [], loanGroups = {};
+  (m.entries || []).forEach(e => {
+    if (e.type === 'release') releases.push(e);
+    else if (e.type === 'loan' || e.type === 'loan_pay') {
+      const n = loanNoOf(e);
+      (loanGroups[n] = loanGroups[n] || []).push(e);
+    } else contribs.push(e);
+  });
+  const byNewest = (a, b) => b.ts - a.ts;
+  const groups = [];
+  if (contribs.length) groups.push({ label: 'Contribution', items: contribs.sort(byNewest) });
+  Object.keys(loanGroups).map(Number).sort((a, b) => a - b).forEach(n => {
+    groups.push({ label: n > 0 ? 'Loan ' + n : 'Loan', items: loanGroups[n].sort(byNewest) });
+  });
+  if (releases.length) groups.push({ label: 'Release', items: releases.sort(byNewest) });
+  return groups;
+}
+
+function paymentLogLine(e) {
+  let action = 'Pay';
+  if (e.type === 'loan') action = 'Loan';
+  else if (e.type === 'release') action = 'Release';
+  else if (e.type === 'loan_pay') {
+    const k = getPayKind(e);
+    action = k === 'interest' ? 'Pay Interest' : k === 'principal' ? 'Pay Principal' : 'Pay';
+  }
+  return `${formatDate(e.ts)} ${action} ${fmt(e.amount)}`;
+}
+
+function renderPaymentLogs(m) {
+  const el = document.getElementById('d-paylogs');
+  if (!el) return;
+  el.innerHTML = '';
+  const groups = buildPaymentLogGroups(m);
+  if (groups.length === 0) {
+    el.innerHTML = '<div class="entry-item" style="justify-content:center;color:#999;font-size:13px;">No entries yet</div>';
+    return;
+  }
+  groups.forEach(g => {
+    const lab = document.createElement('div');
+    lab.className = 'paylog-group-label';
+    lab.textContent = g.label;
+    el.appendChild(lab);
+    g.items.forEach(e => {
+      const line = document.createElement('div');
+      line.className = 'paylog-line';
+      line.textContent = paymentLogLine(e);
+      el.appendChild(line);
+    });
+  });
+}
+
+function copyPaymentLogs() {
+  if (appRole !== 'handler') return;
+  const m = getMember(activeMemberId);
+  if (!m) return;
+  const groups = buildPaymentLogGroups(m);
+  if (groups.length === 0) { retroAlert('📋 NOTHING TO COPY', 'No payment logs yet.', 'ℹ️'); return; }
+
+  const out = [`${m.name} — PAYMENT LOGS`, `Copied: ${formatDate(Date.now())}`, ''];
+  groups.forEach(g => {
+    out.push(g.label);
+    g.items.forEach(e => out.push(paymentLogLine(e)));
+    out.push('');
+  });
+  const text = out.join('\n').trim();
+
+  const done = () => showInterestToast(['📋 Payment logs copied!', m.name]);
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) { done(); return; }
+    } catch (e) {}
+    retroAlert('⚠️ COPY FAILED', 'Could not copy to clipboard.', '⚠️');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback);
+  else fallback();
+}
+
+// Handler-only: copies the member's transactions as plain text, grouped by
+// category (Contribution, Loan 1, Loan 2, ... , Release), newest first in each.
+function copyMemberRecords() {
+  if (appRole !== 'handler') return;
+  const m = getMember(activeMemberId);
+  if (!m) return;
+  if (!m.entries || m.entries.length === 0) {
+    retroAlert('📋 NOTHING TO COPY', 'This member has no transactions yet.', 'ℹ️');
+    return;
+  }
+
+  const loanNoOf = e => {
+    if (e.loanNumber) return e.loanNumber;
+    const l = e.loanId ? getLoanById(m, e.loanId) : null;
+    return (l && l.loanNumber) || 0;
+  };
+
+  const contribs = [], releases = [], loanGroups = {};
+  m.entries.forEach(e => {
+    if (e.type === 'contribution') contribs.push(e);
+    else if (e.type === 'release') releases.push(e);
+    else if (e.type === 'loan' || e.type === 'loan_pay') {
+      const n = loanNoOf(e);
+      (loanGroups[n] = loanGroups[n] || []).push(e);
+    } else contribs.push(e);
+  });
+
+  const newestFirst = (a, b) => b.ts - a.ts;
+  const line = e => {
+    let label, extra = [];
+    if (e.type === 'loan') {
+      label = 'Loan';
+      if (typeof e.loanBalanceAfter === 'number') extra.push(`Loan Balance: ${fmt(e.loanBalanceAfter)}`);
+    } else if (e.type === 'loan_pay') {
+      label = payKindLabel(e);
+      if (e.interestPaid > 0) extra.push(`Interest: ${fmt(e.interestPaid)}`);
+      if (e.principalPaid > 0) extra.push(`Principal: ${fmt(e.principalPaid)}`);
+      if (typeof e.remaining === 'number') extra.push(`Loan Balance: ${fmt(e.remaining)}`);
+    } else if (e.type === 'release') {
+      label = 'Release';
+      if (e.interestShare) extra.push(`Interest Share: ${fmt(e.interestShare)}`);
+      if (e.forfeited) extra.push(`Forfeited: ${fmt(e.forfeited)}`);
+    } else {
+      label = 'Contribution';
+      if (typeof e.contribBalance === 'number') extra.push(`Contribution Balance: ${fmt(e.contribBalance)}`);
+    }
+    return `• ${formatDate(e.ts)} — ${label} ${fmt(e.amount)}` + (extra.length ? ` (${extra.join(' | ')})` : '');
+  };
+
+  const out = [`${m.name} — TRANSACTION RECORD`, `Copied: ${formatDate(Date.now())}`, ''];
+  const addSection = (title, arr) => {
+    if (!arr || arr.length === 0) return;
+    out.push(title);
+    arr.slice().sort(newestFirst).forEach(e => out.push(line(e)));
+    out.push('');
+  };
+
+  addSection('CONTRIBUTION', contribs);
+  Object.keys(loanGroups).map(Number).sort((a, b) => a - b).forEach(n => {
+    addSection(n > 0 ? `LOAN ${n}` : 'LOAN', loanGroups[n]);
+  });
+  addSection('RELEASE', releases);
+
+  const text = out.join('\n').trim();
+
+  const done = () => showInterestToast(['📋 Records copied!', m.name]);
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) { done(); return; }
+    } catch (e) {}
+    retroAlert('⚠️ COPY FAILED', 'Could not copy to clipboard.', '⚠️');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(fallback);
+  } else {
+    fallback();
   }
 }
 
@@ -3732,23 +4016,31 @@ function openLoanPaymentModalFor(loan) {
     `Accrued interest (month ${accrual.billingMonths}): <strong style="color:var(--red)">${fmt(accrual.accrued)}</strong><br>` +
     `Total due: <strong>${fmt(totalDue)}</strong>`;
 
-  document.getElementById('input-loan-payment').value = '';
+  const intEl = document.getElementById('input-loan-pay-interest');
+  const prinEl = document.getElementById('input-loan-pay-principal');
+  intEl.value = '';
+  prinEl.value = '';
   document.getElementById('pay-allocation-preview').style.display = 'none';
   document.getElementById('modal-loan-payment').style.display = 'flex';
 
-  document.getElementById('input-loan-payment').oninput = function() {
-    const val = parseFloat(this.value);
+  const updatePreview = () => {
+    const iv = roundCents(parseFloat(intEl.value));
+    const pv = roundCents(parseFloat(prinEl.value));
     const preview = document.getElementById('pay-allocation-preview');
-    if (!val || val <= 0) { preview.style.display = 'none'; return; }
-    const alloc = allocatePayment(m, loan, val, now);
+    if (!(iv > 0) && !(pv > 0)) { preview.style.display = 'none'; return; }
     preview.style.display = 'block';
-    preview.innerHTML =
-      `Interest paid: <strong style="color:var(--red)">${fmt(alloc.interestPaid)}</strong><br>` +
-      `Principal paid: <strong>${fmt(alloc.principalPaid)}</strong><br>` +
-      (alloc.principalPaid > 0 ? `Remaining principal: <strong>${fmt(Math.max(0, loan.balance - alloc.principalPaid))}</strong>` : '');
+    const lines = [];
+    if (iv > 0) lines.push(`Interest paid: <strong style="color:var(--red)">${fmt(iv)}</strong> (interest left: ${fmt(Math.max(0, accrual.accrued - iv))})`);
+    if (pv > 0) lines.push(`Principal paid: <strong>${fmt(pv)}</strong> (principal left: ${fmt(Math.max(0, loan.balance - pv))})`);
+    lines.push(`Total payment: <strong>${fmt((iv > 0 ? iv : 0) + (pv > 0 ? pv : 0))}</strong>`);
+    preview.innerHTML = lines.join('<br>');
   };
+  intEl.oninput = updatePreview;
+  prinEl.oninput = updatePreview;
+  document.getElementById('btn-max-interest').onclick = () => { intEl.value = roundCents(accrual.accrued).toFixed(2); updatePreview(); };
+  document.getElementById('btn-max-principal').onclick = () => { prinEl.value = roundCents(loan.balance).toFixed(2); updatePreview(); };
 
-  setTimeout(() => document.getElementById('input-loan-payment').focus(), 100);
+  setTimeout(() => intEl.focus(), 100);
 }
 
 function confirmLoanPayment() {
@@ -3756,33 +4048,55 @@ function confirmLoanPayment() {
   const loan = getLoanById(m, pendingPayLoanId);
   if (!loan) { retroAlert('⚠️ ERROR', 'Loan not found!', '⚠️'); return; }
 
-  const val = parseFloat(document.getElementById('input-loan-payment').value);
-  if (!val || val <= 0) { retroAlert('⚠️ INVALID', 'Enter a valid payment amount!', '⚠️'); return; }
+  const rawI = document.getElementById('input-loan-pay-interest').value.trim();
+  const rawP = document.getElementById('input-loan-pay-principal').value.trim();
+  const iv = rawI === '' ? 0 : parseFloat(rawI);
+  const pv = rawP === '' ? 0 : parseFloat(rawP);
 
-  const now = Date.now();
-  const accrual = computeAccruedInterest(m, loan, now);
-  const maxPayable = accrual.totalDue;
-
-  if (val > maxPayable) {
-    retroAlert('⚠️ EXCEEDS DUE', `Payment exceeds total amount due!<br>Max: <strong>${fmt(maxPayable)}</strong>`, '⚠️');
+  if (isNaN(iv) || isNaN(pv) || iv < 0 || pv < 0) { retroAlert('⚠️ INVALID', 'Enter valid amounts!', '⚠️'); return; }
+  const interestPay = roundCents(iv);
+  const principalPay = roundCents(pv);
+  if (interestPay <= 0 && principalPay <= 0) {
+    retroAlert('⚠️ NO AMOUNT', 'Enter an amount in<br><strong>Interest</strong> or <strong>Principal</strong> (or both).', '⚠️');
     return;
   }
 
-  pendingLoanPayAmount = val;
-  const alloc = allocatePayment(m, loan, val, now);
-  const newPrincipal = Math.max(0, loan.balance - alloc.principalPaid);
+  const now = Date.now();
+  const accrual = computeAccruedInterest(m, loan, now);
+  const interestOwed = roundCents(accrual.accrued);
+
+  if (interestPay > interestOwed + 0.005) {
+    retroAlert('⚠️ EXCEEDS INTEREST', `Interest payment is more than the accrued interest.<br>Max: <strong>${fmt(interestOwed)}</strong>`, '⚠️');
+    return;
+  }
+  if (principalPay > roundCents(loan.balance) + 0.005) {
+    retroAlert('⚠️ EXCEEDS PRINCIPAL', `Principal payment is more than the balance.<br>Max: <strong>${fmt(loan.balance)}</strong>`, '⚠️');
+    return;
+  }
+
+  const newPrincipal = Math.max(0, roundCents(loan.balance - principalPay));
+  const interestLeft = Math.max(0, roundCents(interestOwed - interestPay));
+  if (newPrincipal <= 0 && interestLeft > 0.005) {
+    retroAlert('⚠️ INTEREST STILL OWED', `This would clear the principal but <strong>${fmt(interestLeft)}</strong> interest would still be unpaid.<br><br>Also pay the interest (use MAX) so the loan can be closed.`, '⚠️');
+    return;
+  }
+
+  pendingLoanPayInterest = interestPay;
+  pendingLoanPayPrincipal = principalPay;
+  pendingLoanPayAmount = roundCents(interestPay + principalPay);
 
   const activeLoans = getMemberActiveLoans(m);
   const loanTagHtml = activeLoans.length > 1
     ? `<div class="paying-loan-tag">🏦 LOAN ${loan.loanNumber}</div>`
     : '';
 
+  const kindTitle = interestPay > 0 && principalPay > 0 ? 'Payment' : interestPay > 0 ? 'Interest payment' : 'Principal payment';
   document.getElementById('confirm-loan-pay-msg').innerHTML =
     loanTagHtml +
-    `Payment of ${fmt(val)}<br><br>` +
-    (alloc.interestPaid > 0 ? `Interest paid: ${fmt(alloc.interestPaid)}<br>` : '') +
-    `Principal paid: ${fmt(alloc.principalPaid)}<br>` +
-    `Remaining principal: ${fmt(newPrincipal)}`;
+    `${kindTitle} of ${fmt(pendingLoanPayAmount)}<br><br>` +
+    (interestPay > 0 ? `Interest paid: ${fmt(interestPay)}<br>` : '') +
+    (principalPay > 0 ? `Principal paid: ${fmt(principalPay)}<br>` : '') +
+    (principalPay > 0 ? `Remaining principal: ${fmt(newPrincipal)}` : `Interest still owed: ${fmt(interestLeft)}`);
 
   closeModal('modal-loan-payment');
   document.getElementById('modal-confirm-loan-payment').style.display = 'flex';
@@ -3793,9 +4107,15 @@ function addLoanPaymentFinal() {
   const loan = getLoanById(m, pendingPayLoanId);
   if (!loan) return;
 
-  const val = pendingLoanPayAmount;
   const now = Date.now();
-  const alloc = allocatePayment(m, loan, val, now);
+  // Re-check against current numbers; only what was entered is applied.
+  const interestOwed = computeAccruedInterest(m, loan, now).accrued;
+  const interestPaid = Math.min(roundCents(pendingLoanPayInterest), roundCents(interestOwed));
+  const principalPaid = Math.min(roundCents(pendingLoanPayPrincipal), roundCents(loan.balance));
+  const val = roundCents(interestPaid + principalPaid);
+  if (val <= 0) { closeModal('modal-confirm-loan-payment'); return; }
+  const payKind = interestPaid > 0 && principalPaid > 0 ? 'both' : interestPaid > 0 ? 'interest' : 'principal';
+  const alloc = { interestPaid, principalPaid };
 
   loan.balance = Math.max(0, loan.balance - alloc.principalPaid);
   loan.totalPaid = (loan.totalPaid || 0) + val;
@@ -3822,6 +4142,7 @@ function addLoanPaymentFinal() {
 
   pushMemberEntry(m, {
     type: 'loan_pay',
+    payKind,
     amount: val,
     ts: now,
     interestPaid: alloc.interestPaid,
@@ -3837,17 +4158,20 @@ function addLoanPaymentFinal() {
     addHistory('✅', 'Loan Fully Paid!', `${m.name} fully paid Loan ${loan.loanNumber}!${distributionNote}`);
     showInterestToast([`✅ Loan ${loan.loanNumber} fully paid!`, `${m.name}'s loan is now CLEAR`]);
   } else {
-    addHistory('💳', 'Loan Payment', `${m.name} paid ${fmt(val)} on Loan ${loan.loanNumber}, balance: ${fmt(loan.balance)}${distributionNote}`);
+    const what = payKind === 'interest' ? `${fmt(val)} interest` : payKind === 'principal' ? `${fmt(val)} principal` : `${fmt(val)} (interest ${fmt(alloc.interestPaid)} + principal ${fmt(alloc.principalPaid)})`;
+    const title = payKind === 'interest' ? 'Interest Payment' : payKind === 'principal' ? 'Principal Payment' : 'Loan Payment';
+    addHistory('💳', title, `${m.name} paid ${what} on Loan ${loan.loanNumber}, balance: ${fmt(loan.balance)}${distributionNote}`);
   }
 
   saveDB();
-  sendReceiptEmail('LOAN PAYMENT RECEIPT', m, [
+  const receiptRows = [
     ['Loan Number', 'Loan ' + loan.loanNumber],
     ['Payment Amount', fmt(val)],
-    ['Interest Paid', fmt(alloc.interestPaid)],
-    ['Principal Paid', fmt(alloc.principalPaid)],
-    ['Remaining Balance', fmt(loan.balance)],
-  ]);
+  ];
+  if (alloc.interestPaid > 0) receiptRows.push(['Interest Paid', fmt(alloc.interestPaid)]);
+  if (alloc.principalPaid > 0) receiptRows.push(['Principal Paid', fmt(alloc.principalPaid)]);
+  receiptRows.push(['Remaining Balance', fmt(loan.balance)]);
+  sendReceiptEmail(payKind === 'interest' ? 'INTEREST PAYMENT RECEIPT' : payKind === 'principal' ? 'PRINCIPAL PAYMENT RECEIPT' : 'LOAN PAYMENT RECEIPT', m, receiptRows);
   closeModal('modal-confirm-loan-payment');
   pendingPayLoanId = null;
   refreshMemberDetail();
@@ -3990,9 +4314,11 @@ function deleteMemberFinal() {
   if (totalActiveLoanBal > 0) {
     db.totalLoaned = Math.max(0, db.totalLoaned - totalActiveLoanBal);
   }
+  const removedKey = m.accessKey;
   db.members = db.members.filter(mb => mb.id !== activeMemberId);
   addHistory('🗑️', 'Member Removed', `${name} was removed from the group`);
   saveDB();
+  if (removedKey) revokeCloudKey(removedKey);
   closeModal('modal-confirm-delete');
   closeModal('modal-member-detail');
   renderMembers();
@@ -4030,6 +4356,11 @@ function openSettings() {
   document.getElementById('input-emailjs-service').value = (db.emailjsConfig && db.emailjsConfig.serviceId) || '';
   document.getElementById('input-emailjs-template').value = (db.emailjsConfig && db.emailjsConfig.templateId) || '';
   document.getElementById('input-emailjs-publickey').value = (db.emailjsConfig && db.emailjsConfig.publicKey) || '';
+
+  const syncOn = !!db.cloudSyncEnabled;
+  document.getElementById('toggle-cloud-sync').checked = syncOn;
+  document.getElementById('cloud-sync-panel').style.display = syncOn ? 'block' : 'none';
+  if (syncOn) renderMemberKeysList();
 
   document.getElementById('modal-settings').style.display = 'flex';
 }
@@ -4952,6 +5283,7 @@ function doRestoreFinal() {
 (db.members || []).forEach(m => { db.totalLoaned += getMemberTotalLoanBalance(m); });
 
   (db.members || []).forEach(m => rememberMemberName(m.name));
+  ensureMemberKeys();
 
   addHistory('🔄', 'Data Restored', `Backup from ${pendingRestoreData._savedAtReadable || 'unknown date'} (v${version}) was restored`);
   saveDB();
@@ -5252,12 +5584,59 @@ function formatShortDateFromISO(iso) {
   return d ? formatShortDate(d) : iso;
 }
 
-function waitForAuth() {
-  return new Promise(resolve => {
-    if (window.__bubuAuthUid !== undefined && window.__bubuAuthUid !== null) { resolve(); return; }
-    document.addEventListener('bubu-auth-ready', () => resolve(), { once: true });
-    setTimeout(resolve, 4000); 
-  });
+// Turns the Firebase sign-in error into something the handler can act on.
+function describeAuthError() {
+  const e = window.__bubuAuthError;
+  if (!e) return 'Could not sign in to the sharing server yet (slow or no connection). Wait a few seconds and tap SYNC NOW again.';
+  const c = (e.code || '').toLowerCase();
+  const m = (e.message || '').toLowerCase();
+  let hint;
+  if (c === 'auth/operation-not-allowed' || c === 'auth/admin-restricted-operation') {
+    hint = 'Anonymous sign-in is turned OFF. In Firebase Console → Authentication → Sign-in method, enable "Anonymous".';
+  } else if (c === 'auth/unauthorized-domain') {
+    hint = 'This website address (' + location.host + ') is not allowed. Add it in Firebase Console → Authentication → Settings → Authorized domains.';
+  } else if (c.includes('referer') || m.includes('referer') || c === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' || c === 'auth/invalid-api-key' || m.includes('api key')) {
+    hint = 'The Firebase API key rejects this address (' + location.host + '). In Google Cloud Console → APIs & Services → Credentials → your Browser key, allow this address (or open the app from your normal website address).';
+  } else if (c === 'auth/network-request-failed') {
+    hint = 'Network problem reaching Firebase. Check the connection (or any ad/privacy blocker) and try again.';
+  } else if (c === 'auth/too-many-requests') {
+    hint = 'Too many attempts. Wait a few minutes, then tap SYNC NOW once.';
+  } else {
+    hint = 'Firebase refused the sign-in.';
+  }
+  return hint + ' [' + (e.code || e.message) + ']';
+}
+
+// Waits until an anonymous Firebase session really exists.
+// (The old version resolved on the very first auth event — which fires with
+// "no user" before sign-in finishes — so a quick SYNC after opening the app failed.)
+async function waitForAuth(timeoutMs = 20000) {
+  const getUid = () => {
+    const fb = window.__bubuFirebase;
+    const u = fb && fb.fbAuth && fb.fbAuth.currentUser;
+    return window.__bubuAuthUid || (u && u.uid) || null;
+  };
+  const started = Date.now();
+  let lastSignInTry = 0;
+  let retries = 0;
+  while (Date.now() - started < timeoutMs) {
+    const uid = getUid();
+    if (uid) { window.__bubuAuthUid = uid; return; }
+    const fb = window.__bubuFirebase;
+    // Not signed in yet: nudge sign-in again every ~4s in case the first attempt failed/was slow.
+    if (fb && fb.signInAnonymously && retries < 2 && Date.now() - lastSignInTry > 8000) {
+      lastSignInTry = Date.now();
+      retries++;
+      fb.signInAnonymously(fb.fbAuth).catch(err => {
+        console.error('Anon sign-in retry failed:', err && err.code, err && err.message);
+        window.__bubuAuthError = { code: (err && err.code) || '', message: (err && err.message) || String(err) };
+      });
+    }
+    // A hard config error (not a network blip) will never fix itself by waiting.
+    const ae = window.__bubuAuthError;
+    if (ae && ae.code && ae.code !== 'auth/network-request-failed' && ae.code !== 'auth/too-many-requests' && retries >= 1 && Date.now() - started > 2500) return;
+    await new Promise(r => setTimeout(r, 300));
+  }
 }
 
 function onCloudSyncToggle() {
@@ -5271,7 +5650,12 @@ function onCloudSyncToggle() {
     panel.style.display = turningOn ? 'block' : 'none';
     db.cloudSyncEnabled = turningOn;
     saveDB();
-    refreshBubuCodeDisplay();
+    if (turningOn) {
+      renderMemberKeysList();
+    } else {
+      // Turning sharing OFF cuts off every member key on the server.
+      revokeAllCloudKeys();
+    }
   };
 
   if (!db.proPassword) {
@@ -5293,103 +5677,208 @@ function onCloudSyncToggle() {
   }
 }
 
-function refreshBubuCodeDisplay() {
-  document.getElementById('bubu-code-display').textContent = db.bubuCode ? db.bubuCode : '— NO CODE YET —';
+function escHTML(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function generateBubuCode() {
-  retroConfirm('🔁 GENERATE NEW CODE', 'This creates a new Bubu Code and<br>immediately revokes the old one.<br>All members using the old code will<br>be logged out and asked for the new one.<br><br>Continue?', '⚠️', async () => {
-    const oldCode = db.bubuCode;
-    db.bubuCode = genBubuCode();
-    saveDB();
-    refreshBubuCodeDisplay();
-
-    let deleteFailed = false;
-    let stampFailed = false;
-
-    try {
-      await waitForAuth();
-      const uid = window.__bubuAuthUid;
-      const { fbDb, doc, setDoc } = window.__bubuFirebase;
-      const handlerId = getOrCreateHandlerId();
-
-      // Stamp the new active code onto the handler record immediately.
-      // This is the REAL lock — member logins get checked against this,
-      // regardless of whether the old code doc gets deleted below.
-      await setDoc(doc(fbDb, 'handlers', handlerId), {
-        ownerUid: uid,
-        activeCode: db.bubuCode,
-        updatedAt: Date.now()
-      }, { merge: true });
-    } catch (err) {
-      console.error('Failed to stamp active code:', err);
-      stampFailed = true;
-    }
-
-    if (oldCode) {
-      try {
-        await waitForAuth();
-        const { fbDb, doc, deleteDoc } = window.__bubuFirebase;
-        await deleteDoc(doc(fbDb, 'codes', oldCode));
-      } catch (err) {
-        console.error('Failed to revoke old code:', err);
-        deleteFailed = true;
-      }
-    }
-
-    if (stampFailed) {
-      retroAlert('⚠️ CODE GENERATED, BUT NOT SECURED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>⚠️ Could not confirm the lock with the server — check your internet connection and try SYNC NOW before trusting this code is secure.`, '⚠️');
-    } else {
-      retroAlert('✅ CODE GENERATED', `New code:<br><strong style="letter-spacing:3px;">${db.bubuCode}</strong><br><br>Remember to tap SYNC NOW so it goes live.<br><br>The old code no longer has access, even if it isn't fully removed from the server yet.`, '🔁');
-    }
+function renderMemberKeysList() {
+  const list = document.getElementById('member-keys-list');
+  if (!list) return;
+  if (ensureMemberKeys()) saveDB();
+  list.innerHTML = '';
+  if (!db.members.length) {
+    list.innerHTML = '<div style="font-family:\'VT323\',monospace;font-size:16px;text-align:center;color:var(--wood-darker);padding:10px;">No members yet. Add a member to get their key.</div>';
+    return;
+  }
+  db.members.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'mkey-row';
+    row.innerHTML = `
+      <div class="mkey-name">${escHTML(m.name)}</div>
+      <div class="mkey-code">${m.accessKey}</div>
+      <button class="mkey-btn" data-act="copy">📋</button>
+      <button class="mkey-btn" data-act="share" style="background:var(--sky);">📤</button>
+      <button class="mkey-btn" data-act="regen" style="background:#FFAAAA;">🔁</button>`;
+    row.querySelector('[data-act="copy"]').onclick  = () => copyMemberKey(m.id);
+    row.querySelector('[data-act="share"]').onclick = () => shareMemberKey(m.id);
+    row.querySelector('[data-act="regen"]').onclick = () => regenerateMemberKey(m.id);
+    list.appendChild(row);
   });
 }
 
-function copyBubuCode() {
-  if (!db.bubuCode) { retroAlert('⚠️ NO CODE', 'Generate a code first!', '⚠️'); return; }
-  navigator.clipboard.writeText(db.bubuCode).then(() => {
-    showInterestToast(['📋 Code copied!']);
+function copyMemberKey(id) {
+  const m = getMember(id); if (!m) return;
+  navigator.clipboard.writeText(m.accessKey).then(() => {
+    showInterestToast(['📋 Key copied!', m.name]);
   }).catch(() => {
-    retroAlert('⚠️ COPY FAILED', `Copy manually:<br><strong>${db.bubuCode}</strong>`, '⚠️');
+    retroAlert('⚠️ COPY FAILED', `Copy manually:<br><strong>${m.accessKey}</strong>`, '⚠️');
   });
 }
 
-function getSyncSafeData() {
-  const clone = JSON.parse(JSON.stringify(db));
-  delete clone.proPassword; 
-  return clone;
+function shareMemberKey(id) {
+  const m = getMember(id); if (!m) return;
+  const url = location.origin + location.pathname;
+  const msg = `Hi ${m.name}! Here is your personal Pinoy-BUBU key: ${m.accessKey}\n\nOpen ${url}, choose "BUBU MEMBER" and enter this key. Please don't share it with anyone.`;
+  if (navigator.share) {
+    navigator.share({ title: 'Pinoy-BUBU personal key', text: msg }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(msg).then(() => {
+      showInterestToast(['📋 Invite message copied!', m.name]);
+    }).catch(() => {
+      retroAlert('⚠️ COPY FAILED', 'Could not copy the message.', '⚠️');
+    });
+  }
+}
+
+function regenerateMemberKey(id) {
+  const m = getMember(id); if (!m) return;
+  retroConfirm('🔁 NEW KEY', `Generate a new key for<br><strong>${escHTML(m.name)}</strong>?<br><br>Their old key stops working right away.<br>Send them the new key, then tap SYNC NOW.`, '⚠️', async () => {
+    const oldKey = m.accessKey;
+    m.accessKey = genUniqueMemberKey();
+    saveDB();
+    renderMemberKeysList();
+    revokeCloudKey(oldKey);
+    retroAlert('✅ NEW KEY', `New key for ${escHTML(m.name)}:<br><strong style="letter-spacing:3px;">${m.accessKey}</strong><br><br>Tap SYNC NOW so it goes live.`, '🔁');
+  });
+}
+
+// ---------- Cloud helpers ----------
+async function revokeCloudKey(key) {
+  if (!key) return false;
+  try {
+    await waitForAuth();
+    const { fbDb, doc, deleteDoc } = window.__bubuFirebase;
+    await deleteDoc(doc(fbDb, 'codes', key));
+    db.syncedKeys = (db.syncedKeys || []).filter(k => k !== key);
+    saveDB();
+    return true;
+  } catch (err) {
+    console.error('Failed to revoke key:', err);
+    return false; // still tracked in db.syncedKeys; retried on next SYNC NOW
+  }
+}
+
+async function revokeAllCloudKeys() {
+  const keys = [...(db.syncedKeys || [])];
+  if (db.bubuCode && !keys.includes(db.bubuCode)) keys.push(db.bubuCode); // legacy shared code
+  for (const k of keys) await revokeCloudKey(k);
+  delete db.bubuCode;
+  saveDB();
+}
+
+// ---------- Member-safe snapshot ----------
+// Builds the ONLY data a member's key can ever download: group totals + their own record.
+function buildMemberView(member, now) {
+  const rate = db.interestRate ? db.interestRate / 100 : 0;
+
+  // Group-wide aggregates (numbers only — no names, no per-member breakdown)
+  let totalContrib = 0, totalShares = 0;
+  db.members.forEach(m => { totalContrib += (m.totalContributed || 0); totalShares += (m.interestEarned || 0); });
+  const cashOnHand = Math.max(0, totalContrib - (db.totalLoaned || 0) + totalShares + (db.handlerFee || 0));
+
+  // Accrued interest of everyone else, anonymised: total right now + future billing steps.
+  let othersAtSync = 0;
+  const steps = [];
+  const HORIZON_MONTHS = 24;
+  db.members.forEach(m => {
+    if (m.id === member.id) return;
+    getMemberActiveLoans(m).forEach(l => {
+      othersAtSync += computeAccruedInterest(m, l, now).accrued;
+      if (!l.startDate || !rate) return;
+      const monthsElapsed = Math.floor((now - l.startDate) / MS_PER_MONTH);
+      for (let i = monthsElapsed + 1; i <= monthsElapsed + HORIZON_MONTHS; i++) {
+        steps.push({ ts: l.startDate + i * MS_PER_MONTH, amt: Math.round(l.balance * rate * 100) / 100 });
+      }
+    });
+  });
+
+  // Own record, stripped of anything private to the handler
+  const own = JSON.parse(JSON.stringify(member));
+  delete own.accessKey;
+
+  // Records: keep only entries about this member or global ones that name no other person
+  const allNames = new Set([...(db.knownNames || []), ...db.members.map(m => m.name)]);
+  allNames.delete(member.name);
+  const otherNames = [...allNames].filter(n => n && n.trim());
+  const mentionsOther = h => otherNames.some(n => (`${h.title} ${h.detail}`).includes(n));
+  const history = (db.history || []).filter(h => !mentionsOther(h));
+
+  const viewDb = {
+    interestRate: db.interestRate,
+    members: [own],
+    history,
+    totalLoaned: db.totalLoaned || 0,
+    totalReleased: db.totalReleased || 0,
+    totalInterestCollected: db.totalInterestCollected || 0,
+    handlerFee: db.handlerFee || 0,
+    proMode: !!db.proMode,
+    proSettings: JSON.parse(JSON.stringify(db.proSettings || {})),
+    knownNames: [],
+    receiptEnabled: false,
+    receiptSenderEmail: null,
+    emailjsConfig: { serviceId: '', templateId: '', publicKey: '' },
+  };
+
+  return {
+    v: 2,
+    viewerMemberId: member.id,
+    syncedAt: now,
+    aggregate: {
+      memberCount: db.members.length,
+      cashOnHand,
+      othersAccrual: { atSync: othersAtSync, steps }
+    },
+    db: viewDb
+  };
 }
 
 async function syncNow() {
-  if (!db.bubuCode) { retroAlert('⚠️ NO CODE', 'Generate a Bubu Code before syncing!', '⚠️'); return; }
   const statusLine = document.getElementById('sync-status-line');
+  if (!db.cloudSyncEnabled) { retroAlert('⚠️ SHARING OFF', 'Turn on MEMBER SHARING first.', '⚠️'); return; }
+  if (!db.members.length) { retroAlert('⚠️ NO MEMBERS', 'Add at least one member first.', '⚠️'); return; }
+  if (ensureMemberKeys()) saveDB();
+
   statusLine.textContent = '⏳ Syncing...';
   try {
     await waitForAuth();
     const uid = window.__bubuAuthUid;
-    if (!uid) throw new Error('No auth session — check your connection.');
+    if (!uid) throw new Error(describeAuthError());
 
-    const { fbDb, doc, setDoc } = window.__bubuFirebase;
+    const { fbDb, doc, setDoc, deleteDoc } = window.__bubuFirebase;
     const handlerId = getOrCreateHandlerId();
+    const now = Date.now();
 
-    await setDoc(doc(fbDb, 'handlers', handlerId), {
-      ownerUid: uid,
-      activeCode: db.bubuCode,
-      data: getSyncSafeData(),
-      updatedAt: Date.now()
-    });
-    await setDoc(doc(fbDb, 'codes', db.bubuCode), {
-      ownerUid: uid,
-      handlerId: handlerId,
-      updatedAt: Date.now()
-    });
+    // Scrub the old full-database upload (previous versions stored every member's data here).
+    await setDoc(doc(fbDb, 'handlers', handlerId), { ownerUid: uid, updatedAt: now });
+
+    // One document per member key — contains ONLY that member's view.
+    const writes = db.members.map(m =>
+      setDoc(doc(fbDb, 'codes', m.accessKey), {
+        ownerUid: uid,
+        updatedAt: now,
+        view: buildMemberView(m, now)
+      })
+    );
+    await Promise.all(writes);
+
+    // Revoke keys that no longer belong to anyone (regenerated, removed, or the legacy shared code).
+    const liveKeys = new Set(db.members.map(m => m.accessKey));
+    const stale = new Set((db.syncedKeys || []).filter(k => !liveKeys.has(k)));
+    if (db.bubuCode) stale.add(db.bubuCode);
+    for (const k of stale) {
+      try { await deleteDoc(doc(fbDb, 'codes', k)); }
+      catch (e) { console.error('Stale key delete failed:', k, e); liveKeys.add(k); } // keep tracking; retry next sync
+    }
+    if (db.bubuCode && !liveKeys.has(db.bubuCode)) delete db.bubuCode;
+    db.syncedKeys = [...liveKeys];
+    saveDB();
 
     statusLine.textContent = '✅ Synced at ' + formatDate(Date.now());
-    retroAlert('☁️ SYNC COMPLETE', 'Your data is now available<br>to members with your Bubu Code.', '✅');
+    retroAlert('☁️ SYNC COMPLETE', `${db.members.length} member view${db.members.length>1?'s are':' is'} now live.<br>Each member sees only their own record.`, '✅');
   } catch (err) {
     console.error('Sync failed:', err);
     statusLine.textContent = '❌ Sync failed';
-    retroAlert('❌ SYNC FAILED', `Could not sync — check your internet connection and try again.<br><br><span style="font-size:12px;color:#888;">${err.message || err}</span>`, '⚠️');
+    retroAlert('❌ SYNC FAILED', `Could not sync.<br><br><span style="font-size:14px;line-height:1.4;">${escHTML(err.message || String(err))}</span>`, '⚠️');
   }
 }
 
@@ -5418,42 +5907,35 @@ function closeReenterCodeModal() {
 }
 
 async function memberFetchByCode(code, silent) {
+  const revoked = {
+    isInvalidCode: true,
+    message: '🚫 This key is invalid or was revoked. Please ask your handler for your personal key, then enter it below.'
+  };
   try {
     await waitForAuth();
     const { fbDb, doc, getDoc } = window.__bubuFirebase;
 
     const codeSnap = await getDoc(doc(fbDb, 'codes', code));
-    if (!codeSnap.exists()) {
-      throw {
-        isInvalidCode: true,
-        message: '🚫 Your Bubu Code was revoked. The handler generated a new one — please ask your handler for the new code in their SETTINGS, then enter it below.'
-      };
-    }
-    const handlerId = codeSnap.data().handlerId;
+    if (!codeSnap.exists()) throw revoked;
 
-    const handlerSnap = await getDoc(doc(fbDb, 'handlers', handlerId));
-    if (!handlerSnap.exists()) {
-      throw {
-        isInvalidCode: true,
-        message: '🚫 Your Bubu Code was revoked. Please ask your handler for the new code in their SETTINGS, then enter it below.'
-      };
-    }
+    const view = codeSnap.data().view;
+    // Old shared-code documents have no per-member view — they are no longer accepted.
+    if (!view || view.v !== 2 || !view.db || !Array.isArray(view.db.members) || view.db.members.length !== 1) throw revoked;
 
-    const handlerData = handlerSnap.data();
-
-
-    if (handlerData.activeCode && handlerData.activeCode !== code) {
-      throw {
-        isInvalidCode: true,
-        message: '🚫 Your Bubu Code was revoked. The handler generated a new one — please ask your handler for the new code in their SETTINGS, then enter it below.'
-      };
-    }
-
-    db = handlerData.data;
+    const base = {
+      interestRate: null, members: [], history: [], totalLoaned: 0, totalReleased: 0,
+      totalInterestCollected: 0, knownNames: [], handlerFee: 0, proMode: false,
+      proSettings: { frequency: 1, scheduleDates: [], scheduleHistory: [], amortAmount: 0, penaltyPerDay: 0 },
+      receiptEnabled: false, receiptSenderEmail: null,
+      emailjsConfig: { serviceId: '', templateId: '', publicKey: '' }
+    };
+    db = { ...base, ...view.db };
+    memberViewMeta = { viewerMemberId: view.viewerMemberId, aggregate: view.aggregate, syncedAt: view.syncedAt };
     memberBubuCode = code;
-    memberLastSync = Date.now();
+    memberLastSync = view.syncedAt || Date.now();
     localStorage.setItem(MEMBER_CODE_KEY, code);
 
+    clearMemberSearch();
     renderMembers();
     updateOverview();
     applyRoleUI();
@@ -5470,8 +5952,8 @@ async function memberFetchByCode(code, silent) {
     document.getElementById('cancel-code-btn').style.display = 'none';
     const errEl = document.getElementById('bubu-code-error');
     errEl.textContent = err.isInvalidCode
-      ? (err.message || 'Invalid code. Please re-enter.')
-      : 'Could not connect — check your internet connection.';
+      ? (err.message || 'Invalid key. Please re-enter.')
+      : (window.__bubuAuthError && !window.__bubuAuthUid ? describeAuthError() : 'Could not connect — check your internet connection.');
   }
 }
 
