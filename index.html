@@ -4683,6 +4683,13 @@ function saveProSettings() {
   const releaseDateVal = document.getElementById('input-release-date').value || null;
 
   const wasProMode = db.proMode;
+  // FIX: settle penalties under the OLD settings up to now, before the
+  // schedule/sync points are changed, so no already-accrued days are lost.
+  if (wasProMode && db.proSettings && db.proSettings.amortAmount) {
+    const settleNow = Date.now();
+    advancePassedScheduleDates(settleNow);
+    db.members.forEach(m => syncMemberCycles(m, settleNow));
+  }
   const oldScheduleDates = JSON.stringify((db.proSettings && db.proSettings.scheduleDates) || []);
   const newScheduleDates = JSON.stringify(dates);
   const scheduleChanged = oldScheduleDates !== newScheduleDates;
@@ -4812,6 +4819,16 @@ function syncMemberCycles(member, now) {
     }
     if (dueAmount > 0.0001) {
       member.proUnpaidCycles.push({ dueDate: iso, amount: dueAmount });
+      // FIX: if this due date is already in the past relative to the last
+      // sync point (e.g. admin edited the schedule to a past date, which
+      // resets proLastSyncTs to "now"), back-charge the penalty from the
+      // actual due date up to the sync point. Otherwise those days are lost.
+      if (dueTs < segmentStart) {
+        const lateDays = wholeDaysBetween(dueTs, segmentStart);
+        if (lateDays > 0) {
+          member.proPenaltyBalance += ps.penaltyPerDay * lateDays;
+        }
+      }
     }
 
     member.proProcessedDues.push(iso);
