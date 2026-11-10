@@ -553,9 +553,25 @@
   padding: 0 12px;
 }
 .loan-card.expanded .loan-card-body {
-  max-height: 900px;
+  max-height: 4000px;
   padding: 0 12px 12px;
 }
+
+
+.int-sched { margin-top:10px; border:2px solid var(--black); background:#FFF8E7; }
+.int-sched-title { font-family:'Press Start 2P', monospace; font-size:8px; padding:8px; background:var(--wood-darker); color:#FFF; }
+.int-sched-sum { font-family:'VT323', monospace; font-size:15px; padding:6px 8px; border-bottom:2px solid var(--black); color:var(--wood-darker); }
+.int-sched-sum .bad { color:var(--red); font-weight:bold; }
+.int-sched-row { display:flex; justify-content:space-between; align-items:center; gap:6px; padding:6px 8px; border-bottom:1px dashed #999; font-family:'VT323', monospace; font-size:15px; line-height:1.15; }
+.int-sched-row:last-child { border-bottom:none; }
+.int-sched-row .per { color:var(--black); }
+.int-sched-row .per small { display:block; color:#777; font-size:13px; }
+.int-sched-row .amt { text-align:right; white-space:nowrap; }
+.int-sched-badge { display:inline-block; font-family:'Press Start 2P', monospace; font-size:7px; padding:3px 5px; border:2px solid var(--black); margin-top:3px; }
+.int-sched-badge.paid { background:#A8E6CF; color:#124; }
+.int-sched-badge.unpaid { background:#E74C3C; color:#FFF; }
+.int-sched-badge.partial { background:#F1C40F; color:#000; }
+.int-sched-row.unpaid { background:rgba(231,76,60,0.12); }
 
 .loan-select-card {
   background: var(--sky);
@@ -1829,6 +1845,7 @@ body.bubu-view-only #main {
             </div>
           </div>
           <div id="d-accrual-warning" class="accrual-warning" style="display:none;"></div>
+          <div id="d-interest-schedule"></div>
         </div>
         <div id="loan-cards-multi-wrap" style="display:none;"></div>
       </div>
@@ -2758,7 +2775,7 @@ function getLoanBalanceAt(member, loan, ts) {
 }
 
 function computeAccruedInterest(member, loan, now) {
-  if (!loan || !loan.balance || loan.balance <= 0) {
+  if (!loan || ((!loan.balance || loan.balance <= 0) && !loan.interestOpen)) {
     return { months: 0, billingMonths: 0, accrued: 0, totalDue: 0 };
   }
   if (!loan.startDate || !db.interestRate) {
@@ -2857,7 +2874,8 @@ function fmt(n) {
 }
 
 function getMemberActiveLoans(m) {
-  return (m.loans || []).filter(l => l.balance > 0);
+  // Open = principal left, OR principal cleared but interest still unpaid.
+  return (m.loans || []).filter(l => l.balance > 0 || l.interestOpen);
 }
 function getMemberTotalLoanBalance(m) {
   return getMemberActiveLoans(m).reduce((s, l) => s + l.balance, 0);
@@ -3632,6 +3650,63 @@ function copyMemberRecords() {
   }
 }
 
+// Month-by-month interest record for a loan: period, interest, PAID / PARTIAL / UNPAID.
+// Interest payments are applied to the oldest period first.
+function buildInterestScheduleHtml(m, loan, now) {
+  if (!loan || !loan.startDate || !db.interestRate) return '';
+  const accrual = computeAccruedInterest(m, loan, now);
+  const rate = db.interestRate / 100;
+  const shortDate = ts => formatDate(ts).split(' ').slice(0, 3).join(' ');
+
+  // Dates of interest payments (oldest first) to show "paid on".
+  const payEntries = (m.entries || [])
+    .filter(e => e.type === 'loan_pay' && e.loanId === loan.id && (e.interestPaid || 0) > 0)
+    .sort((a, b) => a.ts - b.ts);
+
+  let paidPool = roundCents(loan.accruedInterestPaid || 0);
+  let cumDue = 0, unpaidCount = 0, unpaidTotal = 0;
+  const rows = [];
+  for (let i = 0; i < accrual.billingMonths; i++) {
+    const startTs = loan.startDate + i * MS_PER_MONTH;
+    const endTs = loan.startDate + (i + 1) * MS_PER_MONTH - 86400000;
+    const amount = roundCents(getLoanBalanceAt(m, loan, startTs) * rate);
+    if (amount <= 0) continue;
+    cumDue = roundCents(cumDue + amount);
+
+    const covered = Math.min(amount, Math.max(0, paidPool));
+    paidPool = roundCents(paidPool - covered);
+    let status, paidOn = '';
+    if (covered >= amount - 0.005) {
+      status = 'paid';
+      let run = 0;
+      for (const e of payEntries) { run += e.interestPaid; if (run >= cumDue - 0.005) { paidOn = shortDate(e.ts); break; } }
+    } else if (covered > 0.005) {
+      status = 'partial';
+      unpaidCount++; unpaidTotal += amount - covered;
+    } else {
+      status = 'unpaid';
+      unpaidCount++; unpaidTotal += amount;
+    }
+    rows.push({ i, startTs, endTs, amount, covered, status, paidOn });
+  }
+  if (rows.length === 0) return '';
+
+  const rowHtml = rows.map(r => {
+    const label = r.status === 'paid' ? 'PAID' : r.status === 'partial' ? 'PARTIAL' : 'UNPAID';
+    const sub = r.status === 'paid' ? (r.paidOn ? `paid ${r.paidOn}` : '')
+      : r.status === 'partial' ? `paid ${fmt(r.covered)} / left ${fmt(r.amount - r.covered)}` : '';
+    return `<div class="int-sched-row ${r.status === 'paid' ? '' : 'unpaid'}">
+      <div class="per">${shortDate(r.startTs)} – ${shortDate(r.endTs)}<small>Month ${r.i + 1}${sub ? ' · ' + sub : ''}</small></div>
+      <div class="amt">${fmt(r.amount)}<br><span class="int-sched-badge ${r.status}">${label}</span></div>
+    </div>`;
+  }).join('');
+
+  const sum = unpaidCount > 0
+    ? `<span class="bad">${unpaidCount} month${unpaidCount > 1 ? 's' : ''} unpaid · ${fmt(unpaidTotal)} owed</span>`
+    : `All billed interest is paid ✔`;
+  return `<div class="int-sched"><div class="int-sched-title">📅 INTEREST SCHEDULE</div><div class="int-sched-sum">${sum}</div>${rowHtml}</div>`;
+}
+
 function renderSingleLoanPanel(m, loan, now) {
   const accrual = computeAccruedInterest(m, loan, now);
   document.getElementById('d-loan-date-line').innerHTML =
@@ -3665,6 +3740,8 @@ function renderSingleLoanPanel(m, loan, now) {
   } else {
     warningEl.textContent = `🎯 Month 1 interest applied (days 0–29). Next month's interest at day 30.`;
   }
+  const schedEl = document.getElementById('d-interest-schedule');
+  if (schedEl) schedEl.innerHTML = buildInterestScheduleHtml(m, loan, now);
 }
 
 function renderMultiLoanCards(m, activeLoans, now) {
@@ -3727,6 +3804,7 @@ function renderMultiLoanCards(m, activeLoans, now) {
           </div>
         </div>
         <div class="accrual-warning" style="display:block;">${warningText}</div>
+        ${buildInterestScheduleHtml(m, loan, now)}
       </div>
     `;
     wrap.appendChild(card);
@@ -4076,10 +4154,8 @@ function confirmLoanPayment() {
 
   const newPrincipal = Math.max(0, roundCents(loan.balance - principalPay));
   const interestLeft = Math.max(0, roundCents(interestOwed - interestPay));
-  if (newPrincipal <= 0 && interestLeft > 0.005) {
-    retroAlert('⚠️ INTEREST STILL OWED', `This would clear the principal but <strong>${fmt(interestLeft)}</strong> interest would still be unpaid.<br><br>Also pay the interest (use MAX) so the loan can be closed.`, '⚠️');
-    return;
-  }
+  // Paying the full principal while interest is still owed is allowed:
+  // the loan stays open (interest-only) until the leftover interest is paid.
 
   pendingLoanPayInterest = interestPay;
   pendingLoanPayPrincipal = principalPay;
@@ -4096,7 +4172,9 @@ function confirmLoanPayment() {
     `${kindTitle} of ${fmt(pendingLoanPayAmount)}<br><br>` +
     (interestPay > 0 ? `Interest paid: ${fmt(interestPay)}<br>` : '') +
     (principalPay > 0 ? `Principal paid: ${fmt(principalPay)}<br>` : '') +
-    (principalPay > 0 ? `Remaining principal: ${fmt(newPrincipal)}` : `Interest still owed: ${fmt(interestLeft)}`);
+    (principalPay > 0 ? `Remaining principal: ${fmt(newPrincipal)}` : '') +
+    (principalPay > 0 && interestLeft > 0.005 ? `<br>` : '') +
+    (interestLeft > 0.005 ? `Interest still owed: ${fmt(interestLeft)}` : '');
 
   closeModal('modal-loan-payment');
   document.getElementById('modal-confirm-loan-payment').style.display = 'flex';
@@ -4152,11 +4230,23 @@ function addLoanPaymentFinal() {
     loanNumber: loan.loanNumber
   });
 
+  let interestLeftAfter = 0;
   if (loan.balance <= 0) {
     loan.balance = 0;
+    // Keep accrual alive while computing what interest is still owed.
+    loan.interestOpen = true;
+    interestLeftAfter = roundCents(computeAccruedInterest(m, loan, now).accrued);
+  }
+
+  if (loan.balance <= 0 && interestLeftAfter <= 0.005) {
+    loan.interestOpen = false;
     loan.status = 'paid';
     addHistory('✅', 'Loan Fully Paid!', `${m.name} fully paid Loan ${loan.loanNumber}!${distributionNote}`);
     showInterestToast([`✅ Loan ${loan.loanNumber} fully paid!`, `${m.name}'s loan is now CLEAR`]);
+  } else if (loan.balance <= 0) {
+    // Principal cleared, interest still unpaid: loan stays open (interest-only).
+    addHistory('💳', 'Principal Cleared', `${m.name} paid ${fmt(val)} on Loan ${loan.loanNumber}. Principal is ₱0.00, ${fmt(interestLeftAfter)} interest still owed${distributionNote}`);
+    showInterestToast([`💳 Loan ${loan.loanNumber} principal cleared`, `${fmt(interestLeftAfter)} interest still owed`]);
   } else {
     const what = payKind === 'interest' ? `${fmt(val)} interest` : payKind === 'principal' ? `${fmt(val)} principal` : `${fmt(val)} (interest ${fmt(alloc.interestPaid)} + principal ${fmt(alloc.principalPaid)})`;
     const title = payKind === 'interest' ? 'Interest Payment' : payKind === 'principal' ? 'Principal Payment' : 'Loan Payment';
@@ -4185,7 +4275,7 @@ function isReleaseOnOrAfterSchedule() {
 
 function confirmRelease() {
   const m = getMember(activeMemberId);
-  if (getMemberTotalLoanBalance(m) > 0) { retroAlert('📤 BLOCKED', 'Cannot release while there<br>is an active loan!', '⚠️'); return; }
+  if (getMemberActiveLoans(m).length > 0) { retroAlert('📤 BLOCKED', 'Cannot release while there<br>is an active loan!', '⚠️'); return; }
   if (m.totalContributed <= 0 && (m.interestEarned || 0) <= 0) {
     retroAlert('📤 NOTHING TO RELEASE', 'No contributions or interest<br>to release!', 'ℹ️'); return;
   }
